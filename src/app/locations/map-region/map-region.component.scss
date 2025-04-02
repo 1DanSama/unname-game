@@ -1,0 +1,137 @@
+/* map-region.component.scss */
+.map-container {
+  position: relative;
+  width: 70vw;
+  height: 70vh;
+  overflow: visible; // Added for proper animation visibility
+}
+
+.map-background {
+  position: absolute;
+  width: 100%;
+  height: 90vh;
+  background-image: url('../../../assets/locations/main-city-region.jpg');
+  background-size: cover;
+  opacity: 0.7;
+  z-index: 1;
+}
+
+.region-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: 100%;
+  height: 90vh;
+  gap: 20vh;
+  z-index: 2;
+  place-items: center;
+}
+
+.zone, .city {
+  position: relative;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #444;
+  border-radius: 100%;
+  min-width: 70px;
+  min-height: 70px;
+  transform-box: fill-box; // Added for consistent animation
+  transform-origin: center; // Added for proper scaling
+
+  // Common zone styles
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+
+.zone {
+  width: 70px;
+  height: 70px;
+  background-image: url('assets/locations/icons/fort-post.jpg');
+}
+
+.city {
+  width: 70px;
+  height: 70px;
+  background-image: url('assets/locations/icons/main-city.png');
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.zone:hover, .city:hover {
+  transform: scale(1.5);
+  z-index: 3;
+}
+
+// Position classes remain the same
+.north { grid-column: 2 / 3; grid-row: 1 / 2; }
+.east { grid-column: 3 / 4; grid-row: 2 / 3; }
+.south { grid-column: 2 / 3; grid-row: 3 / 4; }
+.west { grid-column: 1 / 2; grid-row: 2 / 3; }
+.city { grid-column: 2 / 3; grid-row: 2 / 3; }
+
+/* Animation styles */
+.animation-container {
+  position: fixed;
+  pointer-events: none;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999;
+  opacity: 0;
+  //transition: opacity 0.2s 0.2s;
+  display: none;
+
+  &.active {
+    opacity: 1;
+    display: block;
+
+    .dotted-line {
+      animation: drawLine 12s linear forwards;
+    }
+    .moving-icon {
+      animation: moveIcon 12s ease-in-out forwards;
+    }
+  }
+}
+
+.dotted-line {
+  position: absolute;
+  left: var(--start-x);
+  top: var(--start-y);
+  width: var(--line-length);
+  height: 5px;
+  background: linear-gradient(to right,
+    transparent 70%,
+    rgba(255,0,0,0.5) 70%
+  );
+  background-size: 10px 100%;
+  transform: rotate(var(--line-angle));
+  transform-origin: left center;
+}
+
+.moving-icon {
+  position: absolute;
+  left: var(--start-x);
+  top: var(--start-y);
+  width: 40px;
+  height: 40px;
+  background: url('assets/locations/icons/caravan-icon.jpg') center/cover;
+  border-radius: 100%;
+  transform: translate(0, 0);
+}
+
+@keyframes moveIcon {
+  0% { transform: translate(0, 0); opacity: 1; }
+  70% { transform: translate(var(--delta-x), var(--delta-y)); opacity: 1; }
+  100% { transform: translate(var(--delta-x), var(--delta-y)); opacity: 0; }
+}
+
+@keyframes drawLine {
+  0% { background-size: 0 100%; }
+  100% { background-size: 100% 100%; }
+}

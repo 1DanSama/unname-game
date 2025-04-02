@@ -1,0 +1,64 @@
+.modal-container {
+  padding: 24px;
+  background: white;
+  border-radius: 8px;
+  min-width: 500px;
+}
+
+.modal-title {
+  margin-bottom: 24px;
+  color: #3f51b5;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+
+  button {
+    flex: 1;
+    padding: 12px;
+    transition: all 0.3s ease;
+
+    &.active {
+      background: #3f51b5;
+      color: white;
+    }
+  }
+}
+
+.tab-content {
+  padding: 16px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  min-height: 200px;
+  max-height: 300px;
+  overflow-y: auto;
+
+  h3 {
+    margin-top: 0;
+    color: #3f51b5;
+  }
+}
+
+.modal-actions {
+  margin-top: 24px;
+  text-align: right;
+}
+
+.quest-item {
+  &__wrapper {
+    margin: 8px;
+    border: 1px solid;
+    padding: 4px;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: end;
+
+    button {
+      margin-left: 16px;
+    }
+  }
+}

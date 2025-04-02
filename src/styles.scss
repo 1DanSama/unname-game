@@ -1,0 +1,93 @@
+body {
+  display: flex;
+  justify-content: center;
+  background: #ede6df;
+  margin: 0;
+  padding: 0;
+
+  .main-wrapper {
+    .body-wrapper {
+      width: 70vw;
+      min-height: 100vh;
+      height: 100%;
+      background: #e6d5c3;
+      padding: 16px 16px 16px 16px;
+    }
+
+    h1, h2, p {
+      margin: 0;
+      padding: 12px;
+    }
+  }
+}
+
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+// Видаліть зайві вкладення і використовуйте правильні селектори
+::ng-deep .custom-dialog-container {
+  // Стилі для контейнера діалогу
+  .mat-mdc-dialog-container {
+    border-radius: 12px !important;
+    padding: 0 !important;
+    background: #2a2a2a !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    width: 64vw !important;
+    min-width: 64vw !important;
+    max-width: 64vw !important;
+    height: 70vh !important;
+    min-height: 70vh !important;
+    max-height: 70vh !important;
+  }
+
+  // Стилі для поверхні діалогу
+  .mat-mdc-dialog-surface {
+    transform: none !important;
+    border-radius: 12px !important;
+    background: #2a2a2a !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  // Стилі для контенту
+  .mat-mdc-dialog-content {
+    flex: 1;
+    padding: 0 !important;
+    overflow-y: auto !important;
+  }
+
+  // Стилі для футера
+  .mat-mdc-dialog-actions {
+    padding: 16px !important;
+    border-top: 1px solid #444;
+    background: #1f1f1f !important;
+  }
+}
+
+// Окремий блок для бекдропа
+::ng-deep .cdk-overlay-dark-backdrop {
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(4px);
+}
+
+
+::ng-deep {
+  .mat-mdc-tooltip::before {
+    bottom: 0 !important;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap');
+
+.quest-dialog .mat-dialog-container {
+  background: transparent;
+  box-shadow: none;
+}
+
+.custom-modal {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+}
+

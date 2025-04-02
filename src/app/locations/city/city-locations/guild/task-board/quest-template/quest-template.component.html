@@ -1,0 +1,8 @@
+<div class="quest" (click)="onClick()">
+  <div class="quest-header">
+    <h3 class="quest-title">{{ quest.title }}</h3>
+    <div class="quest-rating" [ngClass]="'rating-' + quest.rating.toLowerCase()">
+      {{ quest.rating }}
+    </div>
+  </div>
+</div>

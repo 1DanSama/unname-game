@@ -1,0 +1,47 @@
+.city-wapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-image: url("/assets/locations/main-city.png");
+
+
+  .block-wapper {
+    position: absolute;
+    padding: 16px;
+    height: 10vh;
+    width: 10vw;
+    justify-items: center;
+
+    .avatar-icon {
+      height: 6vh;
+      width: 6vw;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 100%;
+      border: 3px solid red;
+
+    }
+
+    &:hover {
+      transform: scale(1.5);
+    }
+
+    h6 {
+      margin: 0;
+      background-image: url("/assets/locations/naming-background/5f493b1a68ecc70004ae7110.png");
+      fill: none;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      width: 100%;
+      max-width: 120px;
+      //background-color: red;
+      text-align: center;
+      border: 3px solid red;
+
+    }
+  }
+}

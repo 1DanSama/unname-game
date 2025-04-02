@@ -1,0 +1,13 @@
+<div class="barak">
+  <h1>Barak</h1>
+  <div class="characters-grid">
+    @for (character of recruitedCharactersData; track character.id) {
+      @if (!character?.isTemporary) {
+        <app-character-card
+          [character]="character"
+          [buttonName]="'Manage Equipment'"
+          (onAction)="openEquipmentModal(character)"></app-character-card>
+      }
+    }
+  </div>
+</div>

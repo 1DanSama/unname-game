@@ -1,0 +1,15 @@
+<div class="city-wapper">
+  <h1>{{ title }}</h1>
+  @for (building of buildings; track building) {
+    <div class="block-wapper"
+         [style.left]="building.x"
+         [style.top]="building.y"
+         (click)="enterBuilding(building.name)">
+      <div class="avatar-icon"
+           [style.background-image]="building.iconAvatar ? 'url('+ building.iconAvatar +')' : 'url(./assets/default-building-icon.png)'">
+      </div>
+      <h6>{{ building.name }}</h6>
+    </div>
+  }
+
+</div>

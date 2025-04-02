@@ -1,0 +1,8 @@
+<div class="task-board">
+  @for (quest of quests; track quest.title) {
+    <app-quest-template
+      [quest]="quest"
+      (selected)="showQuestDetails(quest)"
+    ></app-quest-template>
+  }
+</div>

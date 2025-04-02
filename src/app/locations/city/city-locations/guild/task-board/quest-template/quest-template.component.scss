@@ -1,0 +1,53 @@
+.quest {
+  //position: absolute;
+  display: flex;
+  justify-content: space-around;
+  margin: 8px;
+  width: 200px;
+  background: #faf0dc;
+  border: 2px solid #e0d5c0;  padding: 1rem;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  border-radius: 4px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  //transform: translate(
+  //    calc(-50% + var(--x, 0) * 1vw),
+  //    calc(-50% + var(--y, 0) * 1vh)
+  //);
+  //left: 50%;
+  //top: 50%;
+  //min-width: 200px;
+  //max-width: 300px;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  .quest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #654321;
+    margin-bottom: 0.5rem;
+  }
+
+  .quest-title {
+    margin: 0;
+    font-family: 'MedievalSharp', cursive;
+    color: #3d2b1f;
+  }
+
+  .quest-rating {
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 3px;
+
+    &.rating-g { background: #3d2b1f; color: white; }
+    &.rating-f { background: #4CAF50; color: white; }
+    &.rating-d { background: #a2af4c; color: white; }
+    &.rating-c { background: #21f3ec; color: white; }
+    &.rating-b { background: #bf21f3; color: white; }
+    &.rating-a { background: #b02727; color: white; }
+    &.rating-s { background: #fff200; color: black; }
+  }
+}

@@ -1,0 +1,52 @@
+.quests-modal-content{
+  padding: 24px;
+  background: #e6d5c3;
+  border-radius: 8px;
+  min-width: 500px;
+}
+
+.modal-header {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: black;
+  height: 28px;
+}
+
+.quest-item {
+  display: flex;
+  margin-bottom: 18px;
+
+  button {
+    flex: 1;
+    padding: 12px;
+    transition: all 0.3s ease;
+
+    &.active {
+      background: #3f51b5;
+      color: white;
+    }
+  }
+}
+
+.quests-list {
+  padding: 16px;
+  border-radius: 4px;
+  min-height: 200px;
+
+  h3 {
+    margin-top: 0;
+    color: #3f51b5;
+  }
+}
+
+.modal-actions {
+  margin-top: 24px;
+  text-align: right;
+}
+
+.close-button {
+  width: 24px;
+  height: 24px;
+}

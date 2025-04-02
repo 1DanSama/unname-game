@@ -1,0 +1,37 @@
+<div class="map-container" #mapContainer [style.--max-rooms-per-row]="maxRoomsPerRow">
+  <svg class="connection-layer">
+    <!-- @for (line of getConnectionLines(); track $index) {
+      <path [attr.d]="line.d" [class]="line.class" fill="none" stroke-width="3"/>
+    } -->
+  </svg>
+
+  @for (row of mainArray; track row; let rowIndex = $index) {
+    <div class="map-row">
+      @for (colIndex of [].constructor(maxRoomsPerRow); track $index) {
+        @if (getRoomAtPosition(rowIndex, $index); as room) {
+          <div class="map-room"
+               [attr.data-room-id]="room.row + '-' + room.col"
+               [style.width.px]="room.roomSize.width"
+               [style.height.px]="room.roomSize.heigth"
+               [class.current]="room === currentRoom"
+               [class.visited]="room.visited"
+               [class.accessible]="isAccessible(room)"
+               (click)="onRoomClick(room)">
+
+            <div class="room-content">
+              @if (room.enterSide) {
+                <div class="door enter" [class]="room.enterSide"></div>
+              }
+              @for (exit of room.leaveSides; track exit) {
+                <div class="door exit" [class]="exit"></div>
+              }
+              <div class="room-type">{{ room.dungeonArea }}</div>
+            </div>
+          </div>
+        } @else {
+          <div class="map-room empty-block"></div>
+        }
+      }
+    </div>
+  }
+</div>

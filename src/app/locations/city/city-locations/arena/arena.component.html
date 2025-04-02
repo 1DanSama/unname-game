@@ -1,0 +1,36 @@
+<div class="arena-lobby">
+  <h2>⚔️ Арена ⚔️</h2>
+
+  @if (recruitedAdventures$ | async; as adventurers) {
+    <div class="arena-controls">
+      @if (adventurers.length > 0) {
+        <div class="battle-header">
+          <button
+            (click)="startBattle()">
+            <span>
+              Почати тренувальний бій
+            </span>
+          </button>
+
+          <div class="warriors-count">
+            <p>Готові до бою: {{ adventurers.length }} воїнів</p>
+          </div>
+        </div>
+      } @else {
+        <div class="no-warriors">
+          <h3>⚠️ Немає воїнів!</h3>
+          <p>Найміть воїнів у таверні перед битвою</p>
+        </div>
+      }
+    </div>
+  }
+
+<!--    <div class="battle-info">-->
+<!--      @if (state.isBattleActive) {-->
+<!--        <div class="current-battle">-->
+<!--          <p>Активна битва: Раунд {{ state.currentRound }}</p>-->
+<!--          <button routerLink="/battle-field">Приєднатися до бою</button>-->
+<!--        </div>-->
+<!--      }-->
+<!--    </div>-->
+</div>

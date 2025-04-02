@@ -1,0 +1,15 @@
+<div class="quest-dialog">
+  <h2 mat-dialog-title>{{ data.title }}</h2>
+  <div mat-dialog-content>
+    <p class="quest-description">{{ data.description }}</p>
+    <div class="quest-info">
+      <div class="quest-rating" [ngClass]="'rating-' + data.rating.toLowerCase()">
+        Rank: {{ getRankName(data.rating) }}
+      </div>
+    </div>
+  </div>
+  <div mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="onAccept()">Accept Quest</button>
+  </div>
+</div>

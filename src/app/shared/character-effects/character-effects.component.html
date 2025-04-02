@@ -1,0 +1,55 @@
+@if (character$ | async; as character) {
+  <div class="combatant-wrapper"
+       [class.crit-strike]="(crit$ | async) ?? false"
+       [class.evasion]="(evasion$ | async) ?? false"
+       [class.healing]="(healing$ | async) ?? false"
+       [class.active-turn]="(isActiveTurn$ | async) ?? false"
+       [class.moving]="character.currentAction === 'move'"
+       [class.dead]="character.currentHealth <= 0"
+       [class.hit-animation]="((hit$ | async) && !(crit$ | async)) ?? false"
+       [class.action-completed]="character.isActionCompleted">
+
+    <div class="effect-numbers">
+      @if(damage$ | async; as damage) {
+        <div class="damage-number">{{ damage }}</div>
+      }
+      @if(heal$ | async; as heal) {
+        <div class="heal-number">{{ heal }}</div>
+      }
+    </div>
+
+    <div class="action-effect">
+      @if (character.currentAction === 'attack') {
+        <div class="slash-effect">⚔️</div>
+      }
+      @if (character.currentAction === 'heal') {
+        <div class="heal-effect">❤️</div>
+      }
+    </div>
+
+    <div class="combatant">
+      <div class="avatar" [class.hit-effect]="character.isHit">
+        <img [src]="character.icon" class="character-icon" alt="avatar">
+
+        <div class="status-indicators">
+          @if (character.currentAction === 'attack') {
+            <div class="status-icon attack-icon">⚔️</div>
+          }
+          @if (character.currentAction === 'heal') {
+            <div class="status-icon heal-icon">❤️</div>
+          }
+        </div>
+
+        <div class="health-bar">
+          <div class="health" [style.width.%]="getHealthPercentage(character)"></div>
+        </div>
+
+        @if (isManaUser(character)) {
+          <div class="mana-bar">
+            <div class="mana" [style.width.%]="getManaPercentage(character)"></div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

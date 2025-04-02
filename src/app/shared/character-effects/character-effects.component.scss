@@ -1,0 +1,292 @@
+.damage-number, .heal-number {
+  position: fixed;
+  font-size: 1rem;
+  font-weight: 600;
+  z-index: 9999;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: floatUp 1s ease-out forwards;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  isolation: isolate;
+  opacity: 1 !important; /* Force full visibility */
+  mix-blend-mode: normal; /* Prevent color blending */
+}
+
+.damage-number {
+  color: #ff4444;
+  text-shadow: 0 2px 6px rgba(255, 0, 0, 0.6); /* Червона тінь */
+}
+
+.heal-number {
+  color: #00ff88;
+  text-shadow: 0 2px 6px rgba(0, 255, 0, 0.4); /* Зелена тінь */
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translate(-50%, -60px) scale(1.5); /* Плавніший масштаб */
+  }
+}
+
+/* ====== Base Combatant Styles ====== */
+.combatant-wrapper {
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+  width: 6vh;
+  height: 6vh;
+  padding: 8px;
+  overflow: visible;
+
+  // Active turn styling with glow effect
+  &.active-turn {
+    z-index: 20;
+
+    .combatant {
+      transform: scale(1.15);
+      filter: drop-shadow(0 0 12px rgba(241, 196, 15, 0.6));
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -10%;
+        left: -10%;
+        right: -10%;
+        bottom: -10%;
+        background: radial-gradient(circle, rgba(241, 196, 15, 0.3) 0%, transparent 70%);
+        animation: activeTurnGlow 1.5s ease-in-out infinite;
+        border-radius: 50%;
+        z-index: -1;
+      }
+    }
+  }
+
+  // State Modifiers
+  &.moving .character-icon {
+    animation: moveBounce 0.5s ease;
+  }
+
+  &.dead {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  &.action-completed {
+    opacity: 1;
+    filter: none;
+
+    .combatant {
+      opacity: 0.7;
+      filter: grayscale(0.5);
+    }
+  }
+
+  // Hit animation styling
+  &.hit-animation {
+    .character-icon {
+      animation: hitShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+      //animation-iteration-count: 1;
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 120%;
+      height: 120%;
+      opacity: 1 !important;
+      background: radial-gradient(circle, rgba(255,0,0,0.4) 0%, transparent 70%);
+      transform: translate(-50%, -50%);
+      animation: hitPulse 0.4s ease-out;
+    }
+  }
+
+  // Combatant Elements
+  .combatant {
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    backface-visibility: hidden;
+
+    .avatar {
+      width: 6vh;
+      height: 6vh;
+      margin: 0 auto;
+      position: relative;
+      transform-style: preserve-3d;
+
+      .character-icon {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 3;
+        transform: translateZ(0);
+        will-change: transform;
+      }
+
+      .status-indicators {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 3px;
+        z-index: 5;
+
+        .status-icon {
+          font-size: 1.2rem;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+          &.attack-icon { color: #e74c3c; }
+          &.heal-icon { color: #2ecc71; }
+        }
+      }
+
+      // Health/Mana Bars
+      .health-bar, .mana-bar {
+        position: absolute;
+        left: 5%;
+        right: 5%;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(70, 73, 71, 0.8);
+        overflow: hidden;
+        backface-visibility: hidden;
+
+        > div {
+          height: 100%;
+          transition: width 0.3s ease;
+        }
+      }
+
+      .health-bar {
+        bottom: -15px;
+        .health { background: rgba(255, 0, 0, 0.3); }
+      }
+
+      .mana-bar {
+        bottom: -23px;
+        .mana { background: #2980b9; }
+      }
+    }
+  }
+
+  // Action Effects
+  .action-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 50;
+    pointer-events: none;
+
+    .slash-effect, .heal-effect {
+      font-size: 24px;
+      text-shadow: 0 0 8px rgba(0,0,0,0.5);
+      animation: floatUp 0.4s ease-out;
+    }
+  }
+
+  // Special Effects
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 120%;
+    border-radius: 50%;
+    z-index: 30;
+    pointer-events: none;
+    animation: 1s ease-out forwards;
+  }
+
+  &.crit-strike::after {
+    opacity: 1 !important;
+    background: radial-gradient(circle, rgba(255, 50, 50, 0.92) 0%, transparent 70%);
+    animation: critEffect 1s ease-out forwards;
+  }
+
+  &.evasion::after {
+    opacity: 1 !important;
+    background: radial-gradient(circle, rgba(100, 200, 255, 0.9) 0%, transparent 70%);
+    animation: evadeEffect 1s ease-out forwards;
+  }
+
+  &.healing::after {
+    opacity: 1 !important;
+    background: radial-gradient(circle, rgba(50, 255, 100, 0.89) 0%, transparent 70%);
+    animation: healEffect 1s ease-out forwards;
+  }
+}
+
+/* ====== Animations ====== */
+@keyframes activeTurnGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+@keyframes hitShake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
+  40%, 60% { transform: translate3d(3px, 0, 0); }
+}
+
+@keyframes hitPulse {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+@keyframes critEffect {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+@keyframes evadeEffect {
+  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+  to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+@keyframes floatUp {
+  0% {
+    opacity: 1 !important;
+    transform: translate(-50%, 0) scale(1);
+  }
+  100% {
+    opacity: 1 !important;
+    transform: translate(-50%, -60px) scale(1.5);
+    visibility: hidden;
+  }}
+
+@keyframes moveBounce {
+  50% { transform: translateY(-15px); }
+}
+
+/* ====== Responsive Adjustments ====== */
+@media (max-width: 768px) {
+  .combatant-wrapper {
+    width: 60px;
+    height: 60px;
+
+    .avatar .status-indicators {
+      top: -8px;
+      .status-icon { font-size: 1rem; }
+    }
+  }
+}
+
+.character-icon {
+  transition: transform 0.3s ease, filter 0.3s ease;
+  transform: translateZ(0); // Force hardware acceleration
+}

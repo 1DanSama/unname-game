@@ -1,0 +1,98 @@
+<div class="market-container">
+  <!-- Category Selector -->
+  <div class="category-selector">
+    <mat-form-field>
+      <mat-label>Category</mat-label>
+      <mat-select [(ngModel)]="selectedCategory" (ngModelChange)="onCategoryChange()">
+        <mat-option value="Equipment">Equipment</mat-option>
+        <mat-option value="Materials">Materials</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Mode Selector -->
+  <div class="mode-selector">
+    <mat-form-field>
+      <mat-label>Mode</mat-label>
+      <mat-select [(ngModel)]="selectedMode" (ngModelChange)="checkMode(selectedMode)">
+        <mat-option value="Buy">Buy</mat-option>
+        <mat-option value="Sell">Sell</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Equipment Section -->
+  <ng-container *ngIf="selectedCategory === 'Equipment'">
+    <!-- Slot Selector -->
+    <div class="slot-selector">
+      <mat-form-field>
+        <mat-label>Equipment Slot</mat-label>
+        <mat-select [(ngModel)]="selectedSlot" (ngModelChange)="onSlotChange(selectedSlot)">
+          <mat-option *ngFor="let slot of equipmentSlots" [value]="slot">
+            {{ slot }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Equipment Grid -->
+    <h2>Available {{ selectedMode === 'Buy' ? 'Market' : 'Inventory' }} Items</h2>
+    <div class="equipment-grid">
+      @if (equipsForSell && equipsForSell[selectedSlot]?.length) {
+        @for (equip of equipsForSell[selectedSlot]; track equip.id) {
+          <div class="equipment-card">
+            <!-- Existing equipment card content -->
+          </div>
+        }
+      } @else {
+        <p class="no-items">No items available</p>
+      }
+    </div>
+  </ng-container>
+
+  <!-- Materials Section -->
+  <ng-container *ngIf="selectedCategory === 'Materials'">
+    <!-- Material Type Selector -->
+    <div class="material-type-selector">
+      <mat-form-field>
+        <mat-label>Material Type</mat-label>
+        <mat-select [(ngModel)]="selectedMaterialType">
+          <mat-option *ngFor="let type of materialTypes" [value]="type">
+            {{ type }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <!-- Materials List -->
+    <h2>{{ selectedMode === 'Buy' ? 'Available' : 'Your' }} Materials</h2>
+    <div class="materials-list">
+      @for (material of materialsForSell; track material.id) {
+        <div class="material-card">
+          <div class="material-info">
+            <h3>{{ material.title }}</h3>
+            <p class="description">{{ material.description }}</p>
+            <div class="material-stats">
+              <span class="stat">Weight: {{ material.weight }}kg,</span>
+              <span class="stat">Unit Price: {{ material.price }}g</span>
+            </div>
+          </div>
+
+          <div class="material-actions">
+            <mat-form-field *ngIf="selectedMode === 'Buy'" class="custom-form-field">
+              <input matInput type="number" [(ngModel)]="material.quantity"
+                     (change)="updateMaterialQuantity(material, $event)"
+                     min="1" max="99">
+            </mat-form-field>
+            <button mat-raised-button
+                    color="{{selectedMode === 'Buy' ? 'primary' : 'accent'}}"
+                    [disabled]="selectedMode === 'Buy' && (material.price * material.quantity > goldCount)"
+                    (click)="onBuyMaterial(material)">
+              {{ selectedMode }} ({{ material.price * material.quantity }}g)
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </ng-container>
+</div>

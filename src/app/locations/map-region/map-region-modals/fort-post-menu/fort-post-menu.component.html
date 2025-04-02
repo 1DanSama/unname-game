@@ -1,0 +1,40 @@
+<div class="modal-container">
+  <h2 class="modal-title">Select an Option</h2>
+
+  <div class="tab-buttons">
+    @for (tab of tabs; track tab) {
+      <button
+      mat-raised-button
+      [class.active]="activeTab === tab.id"
+      (click)="setActiveTab(tab.id)">
+      {{ tab.label }}
+    </button>
+    }
+  </div>
+
+  <div class="tab-content">
+    @for (tab of tabs; track tab) {
+      @if (activeTab === tab.id) {
+        <h3>{{ tab.title }}</h3>
+        <div class="content-item">
+          @if (tab.id === 2) {
+            @for (quest of quests$ |async; track quest?.id) {
+              <div class="quest-item__wrapper">
+                <div>{{ quest?.title }}</div>
+                <div>{{ quest?.description }}</div>
+                <div class="quest-item__footer">
+                  <div>{{ quest?.finalizeCount }}</div>
+                  <button (click)="compliteQuest(quest)">Complite quest</button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <div class="modal-actions">
+    <button mat-button (click)="onClose()">Close</button>
+  </div>
+</div>

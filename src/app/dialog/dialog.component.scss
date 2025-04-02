@@ -1,0 +1,106 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background-size: cover;
+  background-position: center;
+  transition: background-image 0.5s ease-in-out;
+}
+
+.background-wrapper{
+  height: 56vh;
+  position: relative;
+  background-size: cover;
+
+  .avatar {
+    position: absolute;
+    bottom: 6px;
+    max-height: 30vh;
+    max-width: 30vh;
+    object-fit: cover;
+    transition: all 0.3s ease;
+    z-index: 2;
+
+    left: 20px;
+
+    &.right {
+      left: auto;
+      right: 20px;
+    }
+  }
+
+
+  .avatar-enter {
+    transform: scale(1.05);
+  }
+}
+
+.dialog-window {
+  height: 30vh;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  //background: rgba(0, 0, 0, 0.85);
+  padding: 8px;
+  //display: flex;
+  //gap: 20px;
+  //border-top: 3px solid #ffffff;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.navigation-controls {
+  display: flex;
+  justify-content: end;
+}
+
+.nav-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid grey;
+  color: black;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 8px;
+  //transition: all 0.3s ease;
+}
+
+.nav-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scene-progress {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #4CAF50;
+  transition: width 0.3s ease;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .dialog-window {
+    flex-direction: column;
+    height: 40%;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+  }
+
+  .nav-button {
+    padding: 6px 8px;
+    font-size: 0.9em;
+  }
+}

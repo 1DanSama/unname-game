@@ -1,0 +1,172 @@
+.market-container {
+  background: #e6d5c3;
+  padding: 2rem;
+  min-height: 100vh;
+
+  .category-selector,
+  .mode-selector,
+  .slot-selector,
+  .material-type-selector {
+    mat-form-field {
+      .mat-mdc-select-value,
+      .mat-mdc-select-arrow {
+        color: #5a4a42;
+      }
+
+      .mdc-notched-outline__leading,
+      .mdc-notched-outline__notch,
+      .mdc-notched-outline__trailing {
+        border-color: #c2b3a0 !important;
+      }
+    }
+  }
+
+  .equipment-grid {
+    .equipment-card {
+      background: #e6d5c3;
+      border: 2px solid #e6d5c3;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px rgba(90, 74, 66, 0.1);
+      }
+
+      .equipment-header {
+        border-color: #d4c4b0;
+
+        .equipment-name {
+          color: #5a4a42;
+        }
+
+        .equipment-slot {
+          color: #8a786d;
+        }
+      }
+
+      .equipment-stats {
+        .stat-item {
+          background: #dcd1c5;
+
+          .stat-label {
+            color: #756d65;
+          }
+
+          .stat-value {
+            color: #5a4a42;
+          }
+        }
+      }
+
+      .buy-button {
+        background: #b6452c;
+        color: #fff;
+        border: none;
+
+        &:hover {
+          background: #9d3a24;
+        }
+
+        &:disabled {
+          background: #a89f95;
+          color: #e6d5c3;
+        }
+      }
+    }
+  }
+
+  .materials-list {
+    .material-card {
+      background: #e6d5c3;
+      border: 2px solid #d4c4b0;
+      padding: 8px;
+
+      .material-info {
+        border-right: 2px solid #d4c4b0;
+
+        h3 {
+          color: #5a4a42;
+        }
+
+        .description {
+          color: #8a786d;
+          padding: 12px 0px;
+        }
+
+        .material-stats {
+          color: #756d65;
+          padding-bottom: 12px;
+
+          &:not(:first-child) {
+            padding-left: 8px;
+          }
+
+          .stat {
+            padding-right: 4px;
+          }
+        }
+      }
+
+      .material-actions {
+        button {
+          background: #4a7c62;
+          color: #fff;
+          margin-left: 12px;
+
+          &:hover {
+            background: #3a654f;
+          }
+        }
+
+        mat-form-field {
+          .mdc-text-field {
+            background: #dcd1c5;
+
+            .mat-mdc-form-field-focus-overlay {
+              background-color: #b6452c;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .gold-display {
+    background: #d4c4b0;
+    border: 2px solid #c2b3a0;
+
+    mat-icon {
+      color: #c5a344;
+    }
+
+    span {
+      color: #5a4a42;
+    }
+  }
+}
+
+/* Responsive Additions */
+@media (max-width: 768px) {
+  .market-container {
+    padding: 1rem;
+
+    .equipment-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .material-card {
+      padding: 1rem;
+
+      .material-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+    }
+  }
+}
+
+.custom-form-field {
+  height: 70px;
+  width: 125px;
+}

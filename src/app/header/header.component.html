@@ -1,0 +1,14 @@
+<!-- Add the Active Quests button -->
+<div class="header-wrapper">
+  <div  (click)="goBack()">
+    <span class="arrow"></span>
+<!--    Return back-->
+  </div>
+    <button class="quests-button" (click)="toggleQuestsModal()">
+      Active Quests ({{ (quests$ | async)?.length }})
+    </button>
+    <div class="gold" (click)="showResourcesModal()">
+      <span class="gold-coin"></span>
+      {{ goldCount$ | async }}
+    </div>
+</div>

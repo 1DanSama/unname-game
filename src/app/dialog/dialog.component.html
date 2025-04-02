@@ -1,0 +1,36 @@
+@if (currentScene) {
+  <div class="container">
+    <div class="background-wrapper" [style.background-image]="'url(' + currentScene.backgroundImg + ')'">
+      @if(currentScene.activeCharacterAvatar) {
+        <img [src]="currentScene.activeCharacterAvatar"
+             class="avatar"
+             alt="Character avatar"
+             [class.right]="currentScene.avatarPosition === 'right'"
+             [class.avatar-enter]="!isTyping">
+      }
+    </div>
+    @if (configs.scenes.length > 1){
+      <div class="scene-progress">
+        <div class="progress-bar" [style.width.hv]="progress"></div>
+      </div>
+    }
+    <div class="dialog-window">
+
+      <div class="dialog-content">
+        <div class="navigation-controls">
+            <button class="nav-button" (click)="nextScene()"  [disabled]="currentScene.choise">
+            {{ currentSceneIndex < configs.scenes.length - 1 ? 'Next' : 'Finish' }} →
+          </button>
+        </div>
+
+        <h2 class="character-name">{{ currentScene.activeCharacterName}}</h2>
+        <p class="speech-context">{{ displayedText }}</p>
+        @if(currentScene.choise && currentScene.choise.length) {
+          @for(choise of currentScene.choise; track choise) {
+            <button (click)="makeChoise(choise.pathId)"> {{ choise.text }}</button>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

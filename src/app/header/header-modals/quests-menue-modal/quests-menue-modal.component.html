@@ -1,0 +1,23 @@
+<div class="quests-modal-content">
+  <div class="modal-header">
+    <h2>Active Quests</h2>
+    <button class="close-button" mat-dialog-close>x</button>
+  </div>
+
+  @if (data.quests && data.quests.length) {
+    <div class="quests-list">
+      @for (quest of data.quests; track quest.id) {
+        <div class="quest-item">
+          <h3>{{ quest.title }}</h3>
+          <p class="quest-description">{{ quest.description }}</p>
+          <div class="quest-details">
+            <span class="quest-status" [class]="quest.status">{{ quest.status | titlecase }}</span>
+            <span class="quest-reward">Reward: {{ quest.goldReward }} Gold</span>
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="no-quests">No active quests at the moment</div>
+  }
+</div>

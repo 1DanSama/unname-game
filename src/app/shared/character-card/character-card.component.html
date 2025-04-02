@@ -1,0 +1,53 @@
+<div class="character-card">
+
+  <div class="top-path">
+    <div class="character-avatar">
+      <img [ngSrc]="character?.icon || ''" [alt]="character?.className + ' avatar'" width="54" height="54">
+    </div>
+
+    <div class="character-stats">
+      <div class="stat-item" [matTooltip]="getStatTotal('vitality')" matTooltipPosition="above">
+        <span class="stat-label">VIT</span>
+        <span class="stat-value">
+      {{ character?.characterStats?.vitality }}
+        </span>
+      </div>
+      <div class="stat-item" [matTooltip]="getStatTotal('strength')" matTooltipPosition="above">
+        <span class="stat-label">STR</span>
+        <span class="stat-value">
+      {{ character?.characterStats?.strength }}
+        </span>
+      </div>
+      <div class="stat-item" [matTooltip]="getStatTotal('intellect')" matTooltipPosition="above">
+        <span class="stat-label">INT</span>
+        <span class="stat-value">
+      {{ character?.characterStats?.intellect }}
+    </span>
+      </div>
+      <div class="stat-item" [matTooltip]="getStatTotal('agility')" matTooltipPosition="above">
+        <span class="stat-label">AGI</span>
+        <span class="stat-value">
+      {{ character?.characterStats?.agility }}
+      </span>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="character-header">
+    <div>
+      <h3 class="character-name">{{ character?.name }}</h3>
+      <span class="character-class">{{ character?.className }}</span>
+    </div>
+
+
+    <div class="character-meta">
+      <div class="meta-item">
+        <span>HP: {{ character?.maxHealthPoints }}</span>
+      </div>
+      <div class="meta-item">
+        <span>MP: {{ character?.maxManaPoints }}</span>
+      </div>
+    </div>
+    <button (click)="openEquipmentModal(character)">{{ buttonName }}</button>
+  </div>

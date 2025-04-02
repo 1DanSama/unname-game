@@ -1,0 +1,48 @@
+<!-- map-region.component.html -->
+<div class="map-container">
+  <!-- Add animation elements in template -->
+  <div class="animation-container" [class.active]="isAnimating">
+    <div class="dotted-line"></div>
+    <div class="moving-icon"></div>
+  </div>
+  <!-- Background map image container -->
+  <div class="map-background"></div>
+
+  <!-- Interactive zones -->
+  <div class="region-grid">
+    <!-- North Zone -->
+    <div class="north zone"
+         data-zone="north1"
+         (click)="onZoneClick($event)">
+<!--      <div class="health-bar" [style.height.px]="zones[0].health"></div>-->
+    </div>
+
+    <!-- East Zone -->
+    <div class="east zone"
+         data-zone="east1"
+         (click)="onZoneClick($event)">
+<!--      <div class="health-bar" [style.height.px]="zones[1].health"></div>-->
+    </div>
+
+    <!-- South Zone -->
+    <div class="south zone"
+         data-zone="south1"
+         (click)="onZoneClick($event)">
+<!--      <div class="health-bar" [style.height.px]="zones[2].health"></div>-->
+    </div>
+
+    <!-- West Zone -->
+    <div class="west zone"
+         data-zone="west1"
+         (click)="onZoneClick($event)">
+<!--      <div class="health-bar" [style.height.px]="zones[3].health"></div>-->
+    </div>
+
+    <!-- Central City -->
+    <div class="city" #cityElement
+         data-zone="city"
+         (click)="onZoneClick($event)">
+<!--      <div class="health-bar" [style.height.px]="zones[4].health"></div>-->
+    </div>
+  </div>
+</div>
