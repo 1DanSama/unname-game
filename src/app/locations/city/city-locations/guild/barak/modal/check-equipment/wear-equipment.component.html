@@ -1,0 +1,25 @@
+<div class="theme-warm">
+  <div class="wear-equipment--wrapper">
+    <h2>Select Equipment</h2>
+    <div class="equipment-selector">
+      @for (slot of equipmentSlots; track slot) {
+        @if (character && character.equipment) {
+          <div class="equipment-slot" [class]="slot + '-template'"  (click)="checkAvailableEquipment(slot)">
+
+          @if (character.equipment[slot]) {
+            <img [ngSrc]="character.equipment[slot].icon || 'assets/svg/equipments/empty-slots/empty-' + slot + '.svg'"
+                 alt="equipment icon"
+                 fill/>
+          }
+        </div>
+        }
+      }
+
+      <div class="dialog-actions">
+<!--        <button (click)="onConfirm()" [disabled]="!selectedItem">Confirm</button>-->
+        <button (click)="onCancel()">Cancel</button>
+      </div>
+    </div>
+
+  </div>
+</div>

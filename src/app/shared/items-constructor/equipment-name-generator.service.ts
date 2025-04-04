@@ -30,15 +30,11 @@ export class EquipmentNameGeneratorService {
       prefixes: ['Pauldrons', 'Mantle', 'Epaulets', 'Spaulders'],
       suffixes: ['of Strength', 'of Resilience', 'of the Bear']
     },
-    [EquipmentSlot.Chest]: {
-      prefixes: ['Breastplate', 'Cuirass', 'Hauberk', 'Plackart'],
-      suffixes: ['of Fortitude', 'of the Titan', 'of Unyielding']
-    },
-    [EquipmentSlot.Hands]: {
+    [EquipmentSlot.Gloves]: {
       prefixes: ['Gauntlets', 'Gloves', 'Handguards', 'Grips'],
       suffixes: ['of Precision', 'of Crafting', 'of the Nimble']
     },
-    [EquipmentSlot.Waist]: {
+    [EquipmentSlot.Belt]: {
       prefixes: ['Belt', 'Girdle', 'Sash', 'Cincture'],
       suffixes: ['of Power', 'of the Ox', 'of Endurance']
     },
@@ -46,11 +42,23 @@ export class EquipmentNameGeneratorService {
       prefixes: ['Greaves', 'Legguards', 'Chausses', 'Tassets'],
       suffixes: ['of Stability', 'of the Mountain', 'of Stamina']
     },
-    [EquipmentSlot.Feet]: {
+    [EquipmentSlot.Boots]: {
       prefixes: ['Boots', 'Sabatons', 'Treads', 'Sandals'],
       suffixes: ['of Swiftness', 'of the Zephyr', 'of Travel']
     },
-    [EquipmentSlot.Ring]: {
+    [EquipmentSlot.Ring1]: {
+      prefixes: ['Band', 'Ring', 'Loop', 'Circlet'],
+      suffixes: ['of Power', 'of Warding', 'of Elements']
+    },
+    [EquipmentSlot.Ring2]: {
+      prefixes: ['Band', 'Ring', 'Loop', 'Circlet'],
+      suffixes: ['of Power', 'of Warding', 'of Elements']
+    },
+    [EquipmentSlot.Ring3]: {
+      prefixes: ['Band', 'Ring', 'Loop', 'Circlet'],
+      suffixes: ['of Power', 'of Warding', 'of Elements']
+    },
+    [EquipmentSlot.Ring4]: {
       prefixes: ['Band', 'Ring', 'Loop', 'Circlet'],
       suffixes: ['of Power', 'of Warding', 'of Elements']
     },
@@ -65,6 +73,14 @@ export class EquipmentNameGeneratorService {
     [EquipmentSlot.OffHand]: {
       prefixes: ['Shield', 'Buckler', 'Tome', 'Orb'],
       suffixes: ['of Defense', 'of Warding', 'of Knowledge']
+    },
+    [EquipmentSlot.Cape]: {
+      prefixes: ['Shadow', 'Vorpal', 'Royal', 'Tattered', 'Dragonhide'],
+      suffixes: ['of the Night Sky', 'of Whispers', 'of Wind Walking', 'of Phasing', 'of the Phoenix']
+    },
+    [EquipmentSlot.Body]: {
+      prefixes: ['Fortified', 'Impenetrable', 'Dwarven', 'Silken', 'Obsidian'],
+      suffixes: ['of Unyielding Defense', 'of the Stoneheart', 'of Adamantine Will', 'of the Titan', 'of Eternal Vigil']
     }
   };
 

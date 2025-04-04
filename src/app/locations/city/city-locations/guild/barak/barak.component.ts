@@ -4,11 +4,8 @@ import {IRecruitedAdventuresState} from '../../../../../store/recruted-adventure
 import {selectRecruited} from '../../../../../store/recruted-adventures/recruited-adventures.selector';
 import {RecruitedAdventures} from '../guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {MatDialog} from '@angular/material/dialog';
-import {EquipmentSlot, ItemForEquip} from '../../../../../store/guild-store/models/item.model';
-import {WearEquipmentComponent} from './modal/wear-equipment/wear-equipment.component';
-import {GuildStoreActions} from '../../../../../store/guild-store/guild-store.actions';
+import {CheckEquipmentComponent} from './modal/check-equipment/wear-equipment.component';
 import {IGuildStoreState} from '../../../../../store/guild-store/guild-store.reducer';
-import {RecruitedAdventuresActions} from '../../../../../store/recruted-adventures/recruited-adventures.actions';
 import {CharacterCardComponent} from '../../../../../shared/character-card/character-card.component';
 
 @Component({
@@ -33,35 +30,18 @@ export class BarakComponent {
   }
 
   openEquipmentModal(character:RecruitedAdventures): void {
-    const dialogRef = this.dialog.open(WearEquipmentComponent, {
-      minWidth: '62.1vw',
-      maxWidth: '62.1vw',
+    console.log(' this.recruitedCharactersData',  this.recruitedCharactersData)
+    const dialogRef = this.dialog.open(CheckEquipmentComponent, {
+      minWidth: '60vw',
+      maxWidth: '60vw',
       panelClass: 'custom-dialog-container',
-      data: {}
+      data: {character}
     });
 
-    dialogRef.componentInstance.confirm.subscribe(({selectedEquipment} ) => {
-      if (selectedEquipment) {
-        this.updateEquipment(selectedEquipment, character);
-      }
-    })
-  }
-
-  updateEquipment(selectedEquipment: ItemForEquip, character: RecruitedAdventures): void {
-    this.guildStore.dispatch(GuildStoreActions.removeEquipmentToStore({
-      slot: selectedEquipment.slot,
-      itemId: selectedEquipment.id
-    }));
-
-    const updatedAdventures = {
-      ...character,
-      equipment: {
-        ...character.equipment,
-        [selectedEquipment.slot as EquipmentSlot]: selectedEquipment
-      }
-    };
-
-
-    this.store.dispatch(RecruitedAdventuresActions.updateRecruitedAdventures({ updatedAdventures }));
+    // dialogRef.componentInstance.confirm.subscribe(({selectedEquipment} ) => {
+    //   if (selectedEquipment) {
+    //     this.updateEquipment(selectedEquipment, character);
+    //   }
+    // })
   }
 }

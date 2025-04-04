@@ -1,0 +1,105 @@
+.wear-equipment--wrapper {
+  padding: 24px;
+  max-width: 60vw;
+  min-width: 40vw;
+  max-height: 90vh;
+  background-image: url("assets/svg/equipments/man-silhouette.svg");
+  background-size: 75% 75%;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+
+  .equipment-selector {
+    position: relative;
+    padding: 16px;
+    min-height: 70vh;
+    display: grid;
+    gap: 20px;
+    align-content: end;
+  }
+
+  .equipment-slot {
+    width: 100px;
+    height: 100px;
+    border: 2px solid #ffab40;
+    border-radius: 10px;
+    background: #ffcc80;
+    cursor: pointer;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 10px;
+    }
+  }
+
+  .dialog-actions {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+
+    button {
+      padding: 8px 16px;
+      border-radius: 4px;
+      background-color: #ef6c00;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+}
+
+    .item-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+
+      .stat-item {
+        background: #1a1a1a;
+        padding: 4px;
+        margin: 4px;
+        border-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .stat-label {
+          color: #aaa;
+          font-size: 0.9rem;
+        }
+
+  .equipment-slot {
+    background: #ffcc80;
+    border-color: #ffab40;
+  }
+}
+
+@media (max-width: 768px) {
+  .wear-equipment--wrapper {
+    max-width: 90vw;
+    min-width: 90vw;
+
+    .equipment-selector {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .equipment-slot {
+      width: 80px;
+      height: 80px;
+    }
+  }
+}

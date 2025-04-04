@@ -36,6 +36,7 @@ export class StaffCreatorService {
       price: this.calculatePrice(baseStats, randomStats),
       rarity: ItemRarity.Common,
       slot: EquipmentSlot.Weapon,
+      icon: '',
       stats: {
         [Stat.Intellect]: baseStats.intellect + randomStats.intellect
       },

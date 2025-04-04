@@ -36,6 +36,7 @@ export class SwordCreatorService {
       price: this.calculatePrice(baseStats, randomStats),
       rarity: ItemRarity.Common,
       slot: EquipmentSlot.Weapon,
+      icon: '',
       stats: {
         strength: baseStats.strength + randomStats.strength
       },

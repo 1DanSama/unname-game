@@ -36,6 +36,7 @@ export class ArmorCreatorService {
       price: this.calculatePrice(baseStats, randomStats),
       rarity: ItemRarity.Common,
       slot: slot,
+      icon: '',
       stats: {
         agility: baseStats.agility + randomStats.agility
       },

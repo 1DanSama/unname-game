@@ -1,0 +1,12 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="2" y="2" width="96" height="96" rx="10" fill="#a0a0a0" stroke="#404040" stroke-width="4"/>
+
+  <!-- Inner recessed effect -->
+  <rect x="6" y="6" width="88" height="88" rx="6" fill="#808080" stroke="#606060" stroke-width="2"/>
+
+  <!-- Corner notches -->
+  <path d="M5 5h5v2H5zM5 5v5h2V5z" fill="#404040"/>
+  <path d="M95 5h-5v2h5zM95 5v5h-2V5z" fill="#404040"/>
+  <path d="M5 95h5v-2H5zM5 95v-5h2v5z" fill="#404040"/>
+  <path d="M95 95h-5v-2h5zM95 95v-5h-2v5z" fill="#404040"/>
+</svg>

@@ -18,15 +18,19 @@ export enum EquipmentSlot {
   Head = "Head",
   Neck = "Neck",
   Shoulders = "Shoulders",
-  Chest = "Chest",
-  Hands = "Hands",
-  Waist = "Waist",
+  Gloves = "Gloves",
+  Belt = "Belt",
   Legs = "Legs",
-  Feet = "Feet",
-  Ring = "Ring",
+  Body = "Body",
+  Boots = "Boots",
   Trinket = "Trinket",
   Weapon = "Weapon",
-  OffHand = "OffHand"
+  OffHand = "OffHand",
+  Cape = "Cape",
+  Ring1 = "Ring1",
+  Ring2 = "Ring2",
+  Ring3 = "Ring3",
+  Ring4 = "Ring4",
 }
 
 // TODO should be the same as IEquipStats
@@ -53,6 +57,7 @@ export interface ItemForEquip {
   equipParams: IEquipStats;
   levelRequirement?: number;
   isUpgradeable?: boolean;
+  icon: string;
   // setBonus?: {
   //   setName: string;
   //   bonusStats: ItemStats;

@@ -1,0 +1,110 @@
+.wear-equipment--wrapper {
+  .equipment-slot {
+    height: 6vh;
+    width: 3vw;
+    position: absolute;
+    background-image: url("assets/svg/equipments/empty-slots/empty-backgroung.svg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 8px;
+
+    &:hover {
+      transform: scale(1.5);
+      filter: drop-shadow(0 0 8px #FFD700) drop-shadow(0 0 12px #FFA500);
+      z-index: 2;
+    }
+
+    &.Head-template {
+      top: 0;
+      left: calc(50% - 2vw);
+    }
+
+    &.Cape-template {
+      top: 16%;
+      right: 33%;
+    }
+
+    &.Body-template {
+      top: 30%;
+      left: calc(50% - 2vw);
+    }
+
+    &.Shoulders-template {
+      top: 16%;
+      left: 33%;
+    }
+
+    &.Neck-template {
+      top: 16%;
+      left: calc(50% - 2vw);
+    }
+
+    &.OffHand-template {
+      top: 52%;
+      right: 33%;
+    }
+
+    &.Weapon-template {
+      top: 52%;
+      left: 33%;
+    }
+
+    &.Gloves-template {
+      top: 40%;
+      left: 33%;
+    }
+
+    &.Trinket-template {
+      bottom: 25%;
+      left: 25%;
+    }
+
+    &.Ring1-template {
+      bottom: 25%;
+      right: 33%;
+    }
+
+    &.Ring2-template {
+      bottom: 14%;
+      right: 33%;
+    }
+
+    &.Ring3-template {
+      bottom: 25%;
+      left: 33%;
+    }
+
+    &.Ring4-template {
+      bottom: 14%;
+      left: 33%;
+    }
+
+
+    &.Belt-template {
+      bottom: 44.25%;
+      left: calc(50% - 2vw);
+    }
+
+    &.Legs-template {
+      bottom: 32.25%;
+      left: calc(50% - 2vw);
+    }
+
+    &.Boots-template {
+      bottom: 12%;
+      left: calc(50% - 2vw);
+    }
+
+    img {
+      position: relative;
+      height: 4vh;
+      max-height: 4vh;
+      width: 2vw;
+      max-width: 2vw;
+      display: block;
+      justify-self: center;
+      align-self: center;
+    }
+  }
+}

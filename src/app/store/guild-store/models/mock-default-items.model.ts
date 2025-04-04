@@ -10,6 +10,7 @@ export const commonSword: ItemForEquip = {
   price: 10,
   rarity: ItemRarity.Common,
   slot: EquipmentSlot.Weapon,
+  icon: '/assets/equipments/weapons/basic/swords/Iron_Broadsword_Icon.jpg',
   stats: {
     [Stat.Strength]: 2
   },
@@ -24,6 +25,7 @@ export const bronzeSword: ItemForEquip = {
   name: 'Bronze Sword',
   description: 'A slightly better quality bronze blade',
   price: 10,
+  icon: '/assets/equipments/weapons/basic/swords/Steel_Bonesaw_Icon.jpg',
   rarity: ItemRarity.Common,
   slot: EquipmentSlot.Weapon,
   stats: {
@@ -42,6 +44,7 @@ export const oakStaff: ItemForEquip = {
   price: 10,
   rarity: ItemRarity.Common,
   slot: EquipmentSlot.Weapon,
+  icon: '/assets/equipments/weapons/basic/staffs/Ritual_Wand_Icon.jpg',
   stats: {
     [Stat.Intellect]: 2,
   },
@@ -58,6 +61,7 @@ export const apprenticeStaff: ItemForEquip = {
   price: 10,
   rarity: ItemRarity.Common,
   slot: EquipmentSlot.Weapon,
+  icon: '/assets/equipments/weapons/basic/staffs/Scepter_Icon.jpg',
   stats: {
     [Stat.Intellect]: 3,
     [Stat.Agility]: 1

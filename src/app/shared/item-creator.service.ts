@@ -10,14 +10,18 @@ export class RandomItemGeneratorService {
     EquipmentSlot.Head,
     EquipmentSlot.Neck,
     EquipmentSlot.Shoulders,
-    EquipmentSlot.Chest,
-    EquipmentSlot.Hands,
-    EquipmentSlot.Waist,
+    EquipmentSlot.Gloves,
+    EquipmentSlot.Belt,
     EquipmentSlot.Legs,
-    EquipmentSlot.Feet,
-    EquipmentSlot.Ring,
+    EquipmentSlot.Boots,
+    EquipmentSlot.Body,
     EquipmentSlot.Trinket,
-    EquipmentSlot.OffHand
+    EquipmentSlot.OffHand,
+    EquipmentSlot.Cape,
+    EquipmentSlot.Ring1,
+    EquipmentSlot.Ring2,
+    EquipmentSlot.Ring3,
+    EquipmentSlot.Ring4,
   ];
 
   constructor(
