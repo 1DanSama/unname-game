@@ -61,25 +61,9 @@
   }
 }
 
-    .item-stats {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-      margin-bottom: 20px;
-
-      .stat-item {
-        background: #1a1a1a;
-        padding: 4px;
-        margin: 4px;
-        border-radius: 5px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-
-        .stat-label {
-          color: #aaa;
-          font-size: 0.9rem;
-        }
+.theme-warm {
+  background-color: #fff3e0;
+  color: #3e2723;
 
   .equipment-slot {
     background: #ffcc80;
