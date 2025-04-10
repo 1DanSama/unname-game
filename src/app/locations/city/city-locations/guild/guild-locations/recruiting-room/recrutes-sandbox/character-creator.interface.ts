@@ -67,12 +67,18 @@ export interface ICharacter {
 
 export type rowPosition = 1 | 2 | 3 | 4 | 5 | 6;
 
+export interface IActiveActionStatus {
+  isTakingDamage: boolean;
+  isHeal: boolean;
+  isDead: boolean;
+  isEvaded: boolean;
+  isCriticalDamaged: boolean;
+}
+
 export interface IBattleCharacter extends RecruitedAdventures {
-
-
   lastDamage?: number;
   lastHeal?: number;
-  // Основні бойові параметри
+
   currentHealth: number;
   currentMana: number;
   isEnemy: boolean;
@@ -80,26 +86,20 @@ export interface IBattleCharacter extends RecruitedAdventures {
   isActive: boolean;
   armor?: number;
 
-  // Анімації та дії
   currentAction?: 'attack' | 'heal' | 'move' | 'preparing';
   actionTargetId?: number | null;
 
-  // Позиціонування
   currentRow: rowPosition;
   maxRow: rowPosition;
-  attackRange: number; // Дальність атаки
+  attackRange: number;
 
-  // Статистика руху
   canMoveForward: boolean;
   movementSpeed: number;
   previousRow: rowPosition;
 
-  isHit: boolean;
-  isHeal: boolean;
-  isDead: boolean;
-  isEvaded: boolean;
-  isCriticalDamaged: boolean;
   isActionCompleted: boolean;
+
+  activeActionStatus: IActiveActionStatus;
 }
 
 export interface ICharacterCreator {

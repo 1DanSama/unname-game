@@ -16,7 +16,6 @@ export class QuestManagerService {
   ) {
   }
 
-  // Update quest progress and check completion
   updateQuestProgress(controlTags: string, countToAdd: number): void {
     this.questStore.select(getAllActiveQuests).pipe(take(1)).subscribe(activeQuests => {
         const quest = activeQuests.find(quest => {
@@ -54,9 +53,5 @@ export class QuestManagerService {
     }
 
     return obj?.questTargetKey === questTargetKey ? obj : null
-  }
-
-  getActiveQuestById(activeQuests: IBaseQuest[], questId: string): IBaseQuest | null {
-    return activeQuests.find(q => q.id === questId) || null;
   }
 }

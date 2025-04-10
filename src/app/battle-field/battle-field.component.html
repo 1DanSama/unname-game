@@ -2,7 +2,8 @@
   @if (battleState$ | async; as battleState) {
     <div class="battle-field__wrapper">
       @if (battleState?.isBattleInProgress) {
-        <div class="battle-field" [ngStyle]="{ 'background': 'url(' + (backgroundImg$ | async) + ') no-repeat center/cover' }">
+        <div class="battle-field"
+             [ngStyle]="{ 'background': 'url(' + (backgroundImg$ | async) + ') no-repeat center/cover' }">
           @if ((battleState$ | async)?.battleRows; as rows) {
             @for (battleRow of rows; track battleRow.rowNumber) {
               <div class="battle-row" [attr.data-row]="battleRow.rowNumber">
@@ -13,6 +14,7 @@
                     <div class="combatants-grid">
                       @for (ally of battleRow.allies; track ally.id) {
                         <app-character-effects
+                          [class]="'ally'"
                           [character]="ally"
                           [isActiveTurn]="battleState.currentTurnIndex < (battleState.participants.length || 0)
                             && battleState.participants && battleState.participants[battleState.currentTurnIndex]
@@ -30,6 +32,7 @@
                     <div class="combatants-grid">
                       @for (enemy of battleRow.enemies; track enemy.id) {
                         <app-character-effects
+                          [class]="'enemy'"
                           [character]="enemy"
                           [isActiveTurn]="battleState.currentTurnIndex < (battleState.participants.length || 0)
                             && battleState.participants && battleState.participants[battleState.currentTurnIndex]

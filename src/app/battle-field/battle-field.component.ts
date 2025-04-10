@@ -2,6 +2,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { Store } from '@ngrx/store';
 import {BattleEngineService, BattleState} from '../shared/battle-services/battle-engine/battle-engine.service';
 import {
+  IActiveActionStatus,
   IBattleCharacter, RecruitedAdventures,
 } from '../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {
@@ -10,7 +11,7 @@ import {
   selectBattleStateBackground
 } from '../store/battle-store/battle-store.selectors';
 import { BattleStoreActions } from '../store/battle-store/battle-store.actions';
-import {takeUntil, filter, tap, debounce, debounceTime, distinctUntilChanged, first} from 'rxjs/operators';
+import {takeUntil, filter, tap, first} from 'rxjs/operators';
 import {Observable, Subject} from 'rxjs';
 import {AsyncPipe, NgStyle} from '@angular/common';
 import {CharacterEffectsComponent} from '../shared/character-effects/character-effects.component';
@@ -64,7 +65,7 @@ export class BattleFieldComponent implements OnDestroy {
       ).subscribe();
   }
 
-  handleEffectComplete(effectProperty: keyof IBattleCharacter, character: IBattleCharacter) {
+  handleEffectComplete(effectProperty: keyof IActiveActionStatus, character: IBattleCharacter) {
     if (this.battleEngine.isInitialized) {
       this.battleEngine.updateCharacterEffectState(character.id, effectProperty, false);
     }

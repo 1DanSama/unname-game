@@ -40,19 +40,31 @@ export interface IMaterials {
 
 export interface IGuildStoreState {
   gold: number;
-  equipment: TEquipmentSlots;
-  materials: IMaterials
+  store: {
+    equipment: TEquipmentSlots;
+    materials: IMaterials
+  }
+  baraks: {
+    freePlases: number;
+    occupiedSeats: number;
+  }
 }
 
 export const adapter: EntityAdapter<RecruitedAdventures> = createEntityAdapter<RecruitedAdventures>();
 
 export const initialState: IGuildStoreState = adapter.getInitialState({
-  gold: 950,
-  equipment: createDefaultInventory(),
-  materials: {
-    foodBags: 0,
-    woodenBoards: 0,
-    stoneBlocks:0
+  gold: 500,
+  store: {
+    equipment: createDefaultInventory(),
+    materials: {
+      foodBags: 0,
+      woodenBoards: 0,
+      stoneBlocks: 0
+    }
+  },
+  baraks: {
+    freePlases: 4,
+    occupiedSeats: 0
   }
 });
 
@@ -67,43 +79,51 @@ export const reducer = createReducer(
     gold: state.gold - gold
   })),
   on(GuildStoreActions.addMaterials, (state, { materialName, amount }) => {
-    const materialKey = materialName as keyof typeof state.materials;
-
+    const materialKey = materialName as keyof IMaterials;
     return {
       ...state,
-      materials: {
-        ...state.materials,
-        [materialKey]: (state.materials[materialKey] || 0) + amount
+      store: {
+        ...state.store,
+        materials: {
+          ...state.store.materials,
+          [materialKey]: (state.store.materials[materialKey] || 0) + amount
+        }
       }
     };
   }),
   on(GuildStoreActions.removeMaterials, (state, { materialName, amount }) => {
-    const materialKey = materialName as keyof typeof state.materials;
-
+    const materialKey = materialName as keyof IMaterials;
     return {
       ...state,
-      materials: {
-        ...state.materials,
-        [materialKey]: (state.materials[materialKey] || 0) - amount
+      store: {
+        ...state.store,
+        materials: {
+          ...state.store.materials,
+          [materialKey]: (state.store.materials[materialKey] || 0) - amount
+        }
       }
     };
   }),
-  on(GuildStoreActions.setEquipmentToStore, (state, {equipment}) => ({
+  on(GuildStoreActions.setEquipmentToStore, (state, { equipment }) => ({
     ...state,
-    equipment: {
-      ...state.equipment,
-      [equipment.slot]: [...(state.equipment[equipment.slot] || []), equipment]
-    }
-  })),
-  on(GuildStoreActions.removeEquipmentToStore, (state, {slot, itemId}) => {
-    return {
-      ...state,
+    store: {
+      ...state.store,
       equipment: {
-        ...state.equipment,
-        [slot]: (state.equipment[slot] || []).filter(item => item.id !== itemId)
+        ...state.store.equipment,
+        [equipment.slot]: [...(state.store.equipment[equipment.slot] || []), equipment]
       }
     }
-  })
+  })),
+  on(GuildStoreActions.removeEquipmentToStore, (state, { slot, itemId }) => ({
+    ...state,
+    store: {
+      ...state.store,
+      equipment: {
+        ...state.store.equipment,
+        [slot]: (state.store.equipment[slot] || []).filter(item => item.id !== itemId)
+      }
+    }
+  }))
 );
 
 export const guildStoreReducer = reducer;

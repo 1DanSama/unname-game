@@ -1,13 +1,13 @@
 @if (character$ | async; as character) {
   <div class="combatant-wrapper"
-       [class.crit-strike]="(crit$ | async) ?? false"
-       [class.evasion]="(evasion$ | async) ?? false"
-       [class.healing]="(healing$ | async) ?? false"
+       [class.crit-strike]="character?.activeActionStatus?.isCriticalDamaged"
+       [class.evasion]="character?.activeActionStatus?.isEvaded"
+       [class.healing]="character?.activeActionStatus?.isHeal"
        [class.active-turn]="(isActiveTurn$ | async) ?? false"
        [class.moving]="character.currentAction === 'move'"
        [class.dead]="character.currentHealth <= 0"
-       [class.hit-animation]="((hit$ | async) && !(crit$ | async)) ?? false"
-       [class.action-completed]="character.isActionCompleted">
+       [class.taking-damage]="(character?.activeActionStatus?.isTakingDamage && !character?.activeActionStatus?.isCriticalDamaged)"
+       [class.action-completed]="character?.isActionCompleted">
 
     <div class="effect-numbers">
       @if(damage$ | async; as damage) {
@@ -18,27 +18,9 @@
       }
     </div>
 
-    <div class="action-effect">
-      @if (character.currentAction === 'attack') {
-        <div class="slash-effect">⚔️</div>
-      }
-      @if (character.currentAction === 'heal') {
-        <div class="heal-effect">❤️</div>
-      }
-    </div>
-
     <div class="combatant">
-      <div class="avatar" [class.hit-effect]="character.isHit">
-        <img [src]="character.icon" class="character-icon" alt="avatar">
-
-        <div class="status-indicators">
-          @if (character.currentAction === 'attack') {
-            <div class="status-icon attack-icon">⚔️</div>
-          }
-          @if (character.currentAction === 'heal') {
-            <div class="status-icon heal-icon">❤️</div>
-          }
-        </div>
+      <div class="avatar" [class.hit-effect]="character?.activeActionStatus?.isTakingDamage">
+        <img [ngSrc]="character.icon" class="character-icon" alt="avatar" fill>
 
         <div class="health-bar">
           <div class="health" [style.width.%]="getHealthPercentage(character)"></div>

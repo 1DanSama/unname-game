@@ -1,4 +1,5 @@
 import {
+  IActiveActionStatus,
   IBattleCharacter, RecruitedAdventures, rowPosition
 } from '../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {Injectable} from '@angular/core';
@@ -6,13 +7,12 @@ import {BehaviorSubject, Subject} from 'rxjs';
 import {CountTotalStatsService} from '../count-total-stats.service';
 import {EnemyInitService} from '../enemy-init.service';
 import {BattleCharacterMovingService} from '../battle-character-moving.service';
-import {BattleActionService, IPerformAutoActionResult} from '../battle-action.service';
+import {BattleActionService} from '../battle-action.service';
 import {ButtleGetTargetValueService} from '../buttle-get-target-value.service';
 import {PartyPowerCalculatorService} from '../../party-power-calculator.service';
-import {QuestManagerService} from '../../quest-manager.service';
 import {CharacterClass} from '../../../store/recruted-adventures/recruted-abventures.model';
-import {BattleStoreActions} from '../../../store/battle-store/battle-store.actions';
 import {IEnemyPowerSettings} from '../../../battle-field/dattle-field.model';
+import {QuestManagerService} from '../../quest-manager.service';
 
 export interface BattleState {
   allies: IBattleCharacter[];
@@ -23,8 +23,8 @@ export interface BattleState {
   isBattleInProgress: boolean;
   currentRound: number;
   currentTurnIndex: number;
-  damageNumbers: { id: string; value: number; x:number, y: number }[];
-  healNumbers: { id: string; value: number; x:number, y: number }[];
+  damageNumbers: { id: string; value: number; x: number, y: number }[];
+  healNumbers: { id: string; value: number; x: number, y: number }[];
 }
 
 interface BattleRow {
@@ -33,7 +33,7 @@ interface BattleRow {
   enemies: IBattleCharacter[];
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class BattleEngineService {
   isInitialized = false;
 
@@ -55,6 +55,7 @@ export class BattleEngineService {
   private battleInterval: any;
 
   readonly roundDelay = 1500;
+  readonly battleSpead = 1000;
 
   constructor(
     private countTotalStats: CountTotalStatsService,
@@ -63,13 +64,12 @@ export class BattleEngineService {
     private battleAction: BattleActionService,
     private targetService: ButtleGetTargetValueService,
     private partyPower: PartyPowerCalculatorService,
-    private questManager: QuestManagerService
-  ) {}
+    private questManagerService: QuestManagerService) {
+  }
 
   initializeBattle(recruited: RecruitedAdventures[], enemyPower: IEnemyPowerSettings) {
     this.isInitialized = true;
 
-    // Повне скидання стану
     this.state = {
       allies: [],
       enemies: [],
@@ -88,7 +88,7 @@ export class BattleEngineService {
     // Генерація ворогів
     const enemies = this.enemyInit.generateBalancedEnemies(
       partyStats.totalPower * enemyPower.enemyPowerMultiplier,
-      enemyPower.averageLevel || partyStats.averageLevel *  enemyPower.enemyLevelMultiplier,
+      enemyPower.averageLevel || partyStats.averageLevel * enemyPower.enemyLevelMultiplier,
       enemyPower.enemyPartySize || partyStats.partySize * enemyPower.enemyPartySizeMultiplier
     );
 
@@ -96,6 +96,12 @@ export class BattleEngineService {
     const allies = recruited.map(char => this.createBattleCharacter(char, false));
     const enemyCharacters = enemies.map(enemy => this.createBattleCharacter(enemy, true));
 
+    // Оновлення учасників і рядів битви
+    this.updateParticipants();
+    this.updateBattleRows();
+
+    // Примусовий запуск битви
+    this.processBattleRound();
     // Синхронне оновлення стану
     this.updateState({
       ...this.state,
@@ -103,15 +109,6 @@ export class BattleEngineService {
       enemies: enemyCharacters,
       isBattleInProgress: true
     });
-
-    // Оновлення учасників і рядів битви
-    this.updateParticipants();
-    this.updateBattleRows();
-
-    // Примусовий запуск битви
-    this.processBattleRound();
-
-    console.groupEnd();
   }
 
   private createBattleCharacter(char: RecruitedAdventures, isEnemy: boolean): IBattleCharacter {
@@ -132,13 +129,15 @@ export class BattleEngineService {
       movementSpeed: this.calculateMovementSpeed(char.className),
       equipment: char.equipment || {},
       isTemporary: false,
-      isHit: false,
-      isDead: false,
-      isHeal: false,
-      isEvaded: false,
-      isCriticalDamaged: false,
-      canMoveForward: true,
+      activeActionStatus: {
+        isTakingDamage: false,
+        isDead: false,
+        isHeal: false,
+        isEvaded: false,
+        isCriticalDamaged: false,
+      },
       isActionCompleted: false,
+      canMoveForward: true,
       rowPosition: this.getRowPosition(char.className) as rowPosition,
       lastDamage: 0,
       lastHeal: 0
@@ -147,7 +146,7 @@ export class BattleEngineService {
 
   startBattle() {
     if (this.state.isBattleInProgress) return;
-    this.updateState({ ...this.state, isBattleInProgress: true });
+    this.updateState({...this.state, isBattleInProgress: true});
     this.processBattleRound();
   }
 
@@ -165,8 +164,6 @@ export class BattleEngineService {
       damageNumbers: [],
       healNumbers: []
     });
-
-    console.log('stopBattle')
   }
 
   private processBattleRound() {
@@ -212,7 +209,9 @@ export class BattleEngineService {
             if (this.state.isBattleInProgress) {
               processNext();
             }
-          }, 1000);
+
+            // TODO update for encreas battle spead
+          }, this.battleSpead);
         });
       };
 
@@ -250,7 +249,10 @@ export class BattleEngineService {
     const updatedChar = {
       ...char,
       isActive,
-      isDead: !isActive
+      activeActionStatus: {
+        ...char.activeActionStatus,
+        isDead: !isActive
+      }
     };
 
     const array = updatedChar.isEnemy ? this.state.enemies : this.state.allies;
@@ -269,7 +271,6 @@ export class BattleEngineService {
     try {
       const validTargets = this.getValidTargets(attacker);
       this.updateCharacterState({...attacker, currentAction: 'preparing'});
-
       this.battleAction.performAutoAction(attacker, validTargets, (result) => {
         result.updatedTargets.forEach(t => this.updateCharacterState(t));
 
@@ -279,6 +280,7 @@ export class BattleEngineService {
 
         this.addToLog(result.logs);
         this.updateParticipants();
+
         onComplete();
       });
     } catch (error) {
@@ -287,57 +289,22 @@ export class BattleEngineService {
     }
   }
 
-  private addDamageNumber(value: number, row: rowPosition) { // Оновлений метод
-    const newNumber = {
-      id: `dmg-${Date.now()}-${Math.random()}`,
-      value,
-      x: 0,
-      y:0
+  updateCharacterEffectState(characterId: number, effect: keyof IActiveActionStatus, value: boolean) {
+    const updateCharacter = (character: IBattleCharacter) => {
+      if (character.id === characterId) {
+        return {
+          ...character,
+          activeActionStatus: {
+            ...character.activeActionStatus,
+            [effect]: value
+          }
+        };
+      }
+      return character;
     };
 
-    this.updateState({
-      ...this.state,
-      damageNumbers: [...this.state.damageNumbers, newNumber]
-    });
-    setTimeout(() => this.removeDamageNumber(newNumber.id), 1000);
-  }
-
-  private addHealNumber(value: number, row: rowPosition) { // Оновлений метод
-    const newNumber = {
-      id: `heal-${Date.now()}-${Math.random()}`,
-      value,
-      x: 0,
-      y:0
-    };
-
-    this.updateState({
-      ...this.state,
-      healNumbers: [...this.state.healNumbers, newNumber]
-    });
-    setTimeout(() => this.removeHealNumber(newNumber.id), 1000);
-  }
-
-  private removeDamageNumber(id: string) {
-    this.updateState({
-      ...this.state,
-      damageNumbers: this.state.damageNumbers.filter(n => n.id !== id)
-    });
-  }
-
-  private removeHealNumber(id: string) {
-    this.updateState({
-      ...this.state,
-      healNumbers: this.state.healNumbers.filter(n => n.id !== id)
-    });
-  }
-
-  updateCharacterEffectState(characterId: number, effect: keyof IBattleCharacter, value: boolean) {
-    const updatedAllies = this.state.allies.map(c =>
-      c.id === characterId ? { ...c, [effect]: value } : c
-    );
-    const updatedEnemies = this.state.enemies.map(c =>
-      c.id === characterId ? { ...c, [effect]: value } : c
-    );
+    const updatedAllies = this.state.allies.map(updateCharacter);
+    const updatedEnemies = this.state.enemies.map(updateCharacter);
 
     this.updateState({
       ...this.state,
@@ -347,13 +314,12 @@ export class BattleEngineService {
   }
 
   private updateState(newState: BattleState) {
-    // Додайте перевірку на глибоку рівність
     if (JSON.stringify(this.state) === JSON.stringify(newState)) {
       console.warn('[BattleEngine] 🚨 State update skipped (no changes)');
       return;
     }
 
-    this.state = { ...newState };
+    this.state = {...newState};
     this.stateChanged.next(this.state);
   }
 
@@ -377,10 +343,8 @@ export class BattleEngineService {
     let newRow: rowPosition;
 
     if (attacker.isEnemy) {
-      // Enemies move backward (towards lower rows)
       newRow = Math.max(1, attacker.currentRow - movement) as rowPosition;
     } else {
-      // Allies move forward (towards higher rows)
       newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
     }
 
@@ -415,10 +379,9 @@ export class BattleEngineService {
       ...movementResult.updatedChar,
       previousRow: char.currentRow,
       currentRow: newRow,
-      currentAction: 'move' // Встановлюємо стан анімації
+      currentAction: 'move'
     };
 
-    // Оновлюємо стан
     const updatedArray = char.isEnemy
       ? this.state.enemies.map(c => c.id === char.id ? updatedChar : c)
       : this.state.allies.map(c => c.id === char.id ? updatedChar : c);
@@ -431,7 +394,6 @@ export class BattleEngineService {
     this.addToLog(movementResult.log!);
     this.updateBattleRows();
 
-    // Скидаємо анімацію через 500мс
     setTimeout(() => {
       const clearedChar = {...updatedChar, currentAction: undefined};
       const clearedArray = char.isEnemy
@@ -442,26 +404,8 @@ export class BattleEngineService {
         ...this.state,
         [char.isEnemy ? 'enemies' : 'allies']: clearedArray
       });
-    }, 500);
+    }, 700);
   }
-
-  private getOtherAllies(char: IBattleCharacter): IBattleCharacter[] {
-    return this.state.allies.filter(a =>
-      a.id !== char.id &&
-      !a.isEnemy &&
-      a.className !== CharacterClass.Healer
-    );
-  }
-
-  // private updateCharacterState(char: IBattleCharacter) {
-  //   const array = char.isEnemy ? this.state.enemies : this.state.allies;
-  //   const updatedArray = array.map(c => c.id === char.id ? { ...c, ...char } : c);
-  //
-  //   this.updateState({
-  //     ...this.state,
-  //     [char.isEnemy ? 'enemies' : 'allies']: updatedArray
-  //   });
-  // }
 
   private checkBattleEnd(): boolean {
     const enemiesActive = this.state.enemies.some(e => e.isActive);
@@ -469,6 +413,15 @@ export class BattleEngineService {
 
     if (!enemiesActive || !alliesActive) {
       this.stopBattle();
+      if (!enemiesActive) {
+        this.questManagerService.updateQuestProgress('arena', 1)
+        this.addToLog('You win the battle.')
+      }
+
+      if (!alliesActive) {
+        this.addToLog('You lost the battle')
+
+      }
       return true;
     }
     return false;
@@ -485,18 +438,19 @@ export class BattleEngineService {
       return;
     }
 
-    this.updateState({ ...this.state, participants });
+    this.updateState({...this.state, participants});
     this.updateBattleRows();
   }
 
   private updateBattleRows() {
+    // TODO fix bug with row color after death
     const battleRows = [1, 2, 3, 4, 5, 6].map(row => ({
       rowNumber: row,
       allies: this.state.allies.filter(a => a.currentRow === row),
       enemies: this.state.enemies.filter(e => e.currentRow === row)
     }));
 
-    this.updateState({ ...this.state, battleRows });
+    this.updateState({...this.state, battleRows});
   }
 
   private addToLog(messages: string | string[]) {
@@ -511,25 +465,14 @@ export class BattleEngineService {
     const resetCharacter = (c: IBattleCharacter) => ({
       ...c,
       currentAction: undefined,
-      isHit: false,
       isActionCompleted: false,
-      isActive: c.currentHealth > 0 // Важливо: оновлення статусу активності
+      isActive: c.currentHealth > 0
     });
 
     this.updateState({
       ...this.state,
       allies: this.state.allies.map(resetCharacter),
       enemies: this.state.enemies.map(resetCharacter)
-    });
-  }
-
-  private resetCharacterActionState(char: IBattleCharacter) {
-    const array = char.isEnemy ? this.state.enemies : this.state.allies;
-    const updatedArray = array.map(c => c.id === char.id ? { ...c, currentAction: undefined } : c);
-
-    this.updateState({
-      ...this.state,
-      [char.isEnemy ? 'enemies' : 'allies']: updatedArray
     });
   }
 
@@ -554,9 +497,12 @@ export class BattleEngineService {
 
   private getRowPosition(className: string): rowPosition {
     switch (className) {
-      case CharacterClass.Warrior: return 3;
-      case CharacterClass.Rogue: return 2;
-      default: return 1;
+      case CharacterClass.Warrior:
+        return 3;
+      case CharacterClass.Rogue:
+        return 2;
+      default:
+        return 1;
     }
   }
 

@@ -10,10 +10,10 @@ export const getGoldCount = createSelector(
 
 export const getMaterialsCount = createSelector(
   selectRecruitedAdventuresState,
-  (state: IGuildStoreState) => state.materials
+  (state: IGuildStoreState) => state.store.materials
 );
 
 export const selectEquipment = createSelector(
   selectRecruitedAdventuresState,
-  (state: IGuildStoreState) => state.equipment
+  (state: IGuildStoreState) => state.store.equipment
 );

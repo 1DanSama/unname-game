@@ -5,11 +5,11 @@
   z-index: 9999;
   pointer-events: none;
   white-space: nowrap;
-  animation: floatUp 1s ease-out forwards;
+  animation: floatUp 0.4s ease-out forwards;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
   isolation: isolate;
-  opacity: 1 !important; /* Force full visibility */
-  mix-blend-mode: normal; /* Prevent color blending */
+  opacity: 1 !important;
+  mix-blend-mode: normal;
 }
 
 .damage-number {
@@ -20,17 +20,6 @@
 .heal-number {
   color: #00ff88;
   text-shadow: 0 2px 6px rgba(0, 255, 0, 0.4); /* Зелена тінь */
-}
-
-@keyframes floatUp {
-  0% {
-    opacity: 1;
-    transform: translate(-50%, 0) scale(1);
-  }
-  100% {
-    opacity: 0.5;
-    transform: translate(-50%, -60px) scale(1.5); /* Плавніший масштаб */
-  }
 }
 
 /* ====== Base Combatant Styles ====== */
@@ -68,7 +57,7 @@
 
   // State Modifiers
   &.moving .character-icon {
-    animation: moveBounce 0.5s ease;
+    animation: moveBounce 0.4s ease;
   }
 
   &.dead {
@@ -86,28 +75,6 @@
     }
   }
 
-  // Hit animation styling
-  &.hit-animation {
-    .character-icon {
-      animation: hitShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-      //animation-iteration-count: 1;
-    }
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 120%;
-      height: 120%;
-      opacity: 1 !important;
-      background: radial-gradient(circle, rgba(255,0,0,0.4) 0%, transparent 70%);
-      transform: translate(-50%, -50%);
-      animation: hitPulse 0.4s ease-out;
-    }
-  }
-
-  // Combatant Elements
   .combatant {
     position: relative;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -145,13 +112,18 @@
 
         .status-icon {
           font-size: 1.2rem;
-          text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-          &.attack-icon { color: #e74c3c; }
-          &.heal-icon { color: #2ecc71; }
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+
+          &.attack-icon {
+            color: #e74c3c;
+          }
+
+          &.heal-icon {
+            color: #2ecc71;
+          }
         }
       }
 
-      // Health/Mana Bars
       .health-bar, .mana-bar {
         position: absolute;
         left: 5%;
@@ -161,110 +133,111 @@
         background: rgba(70, 73, 71, 0.8);
         overflow: hidden;
         backface-visibility: hidden;
+        opacity: 1 !important;
 
         > div {
           height: 100%;
-          transition: width 0.3s ease;
+          transition: width 0.4s ease;
         }
       }
 
       .health-bar {
         bottom: -15px;
-        .health { background: rgba(255, 0, 0, 0.3); }
+
+        .health {
+          background: rgba(255, 0, 0, 0.3);
+          opacity: 1 !important;
+        }
       }
 
       .mana-bar {
         bottom: -23px;
-        .mana { background: #2980b9; }
+
+        .mana {
+          background: #2980b9;
+          opacity: 1 !important;
+        }
       }
     }
   }
 
-  // Action Effects
-  .action-effect {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 50;
-    pointer-events: none;
-
-    .slash-effect, .heal-effect {
-      font-size: 24px;
-      text-shadow: 0 0 8px rgba(0,0,0,0.5);
-      animation: floatUp 0.4s ease-out;
-    }
+  &.taking-damage {
+      opacity: 1 !important;
+      animation: takingDamageShake 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
   }
+  //
+  // &.hit-animation {
+  //    opacity: 1 !important;
+  //    animation: hitPulse 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+  //}
 
-  // Special Effects
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 120%;
-    height: 120%;
-    border-radius: 50%;
-    z-index: 30;
-    pointer-events: none;
-    animation: 1s ease-out forwards;
-  }
-
-  &.crit-strike::after {
+  &.crit-strike {
     opacity: 1 !important;
-    background: radial-gradient(circle, rgba(255, 50, 50, 0.92) 0%, transparent 70%);
-    animation: critEffect 1s ease-out forwards;
+    animation: critEffect 0.4s ease-out forwards;
+    background: radial-gradient(circle, rgba(255, 50, 50) 60%, transparent 70%);
   }
 
-  &.evasion::after {
+  &.evasion {
     opacity: 1 !important;
-    background: radial-gradient(circle, rgba(100, 200, 255, 0.9) 0%, transparent 70%);
-    animation: evadeEffect 1s ease-out forwards;
+    //background: radial-gradient(circle, rgba(100, 200, 255) 60%, transparent 70%);
+    animation: evasionPulse 0.6s ease-out forwards;
   }
 
-  &.healing::after {
+  &.healing {
     opacity: 1 !important;
-    background: radial-gradient(circle, rgba(50, 255, 100, 0.89) 0%, transparent 70%);
-    animation: healEffect 1s ease-out forwards;
+    background: radial-gradient(circle, rgba(50, 255, 100) 60%, transparent 70%);
+    animation: healEffect 0.4s ease-out forwards;
   }
 }
 
 /* ====== Animations ====== */
 @keyframes activeTurnGlow {
-  0%, 100% { opacity: 0.6; transform: scale(1); }
+  0%, 100% { opacity: 0.4; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.1); }
 }
 
-@keyframes hitShake {
+@keyframes takingDamageShake {
   10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); background: radial-gradient(circle, rgba(255, 50, 50) 60%, transparent 70%);}
   30%, 50%, 70% { transform: translate3d(-3px, 0, 0); }
-  40%, 60% { transform: translate3d(3px, 0, 0); }
+  40%, 60% { transform: translate3d(3px, 0, 0); background: radial-gradient(circle, rgba(255, 50, 50) 60%, transparent 70%);}
 }
 
-@keyframes hitPulse {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
-}
+  @keyframes evasionPulse {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    50% { opacity: 1; transform: translate(var(--evasion-translate-end)) scale(1.4);
+      background: radial-gradient(circle, rgba(100, 200, 255) 60%, transparent 70%);}
+    100% { opacity: 0; transform: translate(0, 0) scale(1); }
+  }
 
-@keyframes critEffect {
-  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-  to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-}
+@keyframes atackingPulse {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    50% { opacity: 1; transform: translate(var(--hit-translate-end)) scale(1.4);}
+    100% { opacity: 0; transform: translate(0, 0) scale(1); }
+  }
 
-@keyframes evadeEffect {
-  from { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-  to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-}
+
+//@keyframes hitPulse {
+//  0% { opacity: 1; transform: translate(var(--hit-translate-start)) scale(1); }
+//  50% { opacity: 1; transform: translate(var(--hit-translate-end)) scale(1.4);
+//    background: radial-gradient(circle, rgba(255, 50, 50) 60%, transparent 70%);}
+//  100% { opacity: 0; transform: translate(var(--hit-translate-start)) scale(1); }
+//}
+
+//TODO full rework animation for enmy and ally
+//TODO on attack move to enemy
+//TODO on evidance move from enemy
+//TODO on crit decress icon
+//TODO on heal increase icon
+//TODO how to set numbers depent of enemy of allay? Set class and create 2 animation on each action?
 
 @keyframes floatUp {
   0% {
-    opacity: 1 !important;
+    opacity: 1;
     transform: translate(-50%, 0) scale(1);
   }
   100% {
-    opacity: 1 !important;
+    opacity: 0;
     transform: translate(-50%, -60px) scale(1.5);
     visibility: hidden;
   }}
@@ -288,5 +261,61 @@
 
 .character-icon {
   transition: transform 0.3s ease, filter 0.3s ease;
-  transform: translateZ(0); // Force hardware acceleration
+  transform: translateZ(0);
 }
+
+@keyframes critEffect {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes evadeEffect {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes healEffect {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.5);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+//
+//@keyframes hitEffect {
+//  0% {
+//    transform: scale(1);
+//    filter: brightness(1.2);
+//  }
+//  100% {
+//    transform: scale(1);
+//    filter: brightness(1);
+//  }
+//}

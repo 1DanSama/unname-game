@@ -57,7 +57,12 @@ export class BattleActionService {
     if (!target) {
       logs.push(`${attacker.name} не знайшов цілей!`);
       onComplete({
-        updatedAttacker: { ...attacker, isActionCompleted: true },
+        updatedAttacker: { ...attacker,
+          activeActionStatus: {
+            ...attacker.activeActionStatus,
+          },
+          isActionCompleted: true
+        },
         updatedTargets: [],
         logs
       });
@@ -79,7 +84,13 @@ export class BattleActionService {
     }
 
     onComplete({
-      updatedAttacker: { ...attacker, isActionCompleted: true },
+      updatedAttacker: {
+        ...attacker,
+        activeActionStatus: {
+          ...attacker.activeActionStatus,
+        },
+        isActionCompleted: true
+      },
       updatedTargets: result,
       logs,
       damageAmount,
@@ -107,7 +118,7 @@ export class BattleActionService {
     if (evasionResult.isEvaded) {
       this.logger.addLog(`${target.name} ухилився від атаки!`);
       return {
-        updatedTargets: targets.map(t => t?.id === target?.id ? {...target, isEvaded: true} : t),
+        updatedTargets: targets.map(t => t?.id === target?.id ? {...target, activeActionStatus: {...target.activeActionStatus, isEvaded: true}} : t),
         damageAmount: 0
       };
     }
@@ -121,15 +132,23 @@ export class BattleActionService {
     const updatedTarget = {
       ...target,
       currentHealth: newHealth,
-      isHit: true,
-      isCriticalDamaged: isCritical
+      activeActionStatus: {
+        ...target.activeActionStatus,
+        isTakingDamage: true,
+        isCriticalDamaged: isCritical
+      }
     };
 
     this.logger.addLog(`${attacker?.name} атакує ${target?.name} (${totalDamage} шкоди)`);
     if (isCritical) this.logger.addLog('⚡ Критичний удар!');
 
     return {
-      updatedTargets: targets.map(t => t?.id === target?.id ? updatedTarget : t),
+      updatedTargets: targets.map(t => {
+if(t?.id === target?.id ) {
+  console.log(' target?.id',  target?.id)
+}
+  return t?.id === target?.id ? updatedTarget : t
+      }),
       damageAmount: totalDamage
     };
   }
@@ -160,10 +179,15 @@ export class BattleActionService {
     const updatedTarget = {
       ...target,
       currentHealth: Math.min(target.currentHealth + healAmount, target.maxHealthPoints),
-      isHeal: true
+      activeActionStatus: {
+        ...target.activeActionStatus,
+        isHeal: true
+      }
     };
 
     this.logger.addLog(`💚 ${healer.name} лікує ${target.name} на ${healAmount} HP`);
+
+    console.log('battle-action', updatedTarget)
 
     return {
       updatedTargets: targets.map(t => t?.id === target?.id ? updatedTarget : t),

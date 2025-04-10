@@ -88,15 +88,18 @@ export class EnemyInitService {
       name: `Гоблін ${index + 1}`,
       isEnemy: true,
       isActive: true,
-      isHit: false,
-      isHeal: false,
-      isDead: false,
-      isEvaded: false,
-      isCriticalDamaged: false,
-      currentAction: undefined,
+      activeActionStatus: {
+        isTakingDamage: false,
+        isHeal: false,
+        isDead: false,
+        isEvaded: false,
+        isCriticalDamaged: false,
+      },
+      isActionCompleted: false,
       actionTargetId: null,
       canMoveForward: true,
       movementSpeed: 1,
+      currentAction: undefined,
       previousRow: this.getEnemyStartPosition(className),
       currentRow: this.getEnemyStartPosition(className),
       maxRow: this.getEnemyMaxRow(className),
@@ -122,7 +125,6 @@ export class EnemyInitService {
       rowPosition: getRowClassPosition(className),
 
       icon: iconPath,
-      isActionCompleted: false
     };
   }
 
