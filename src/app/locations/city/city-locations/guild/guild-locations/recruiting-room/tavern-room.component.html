@@ -1,5 +1,8 @@
 <div class="recruiting-room">
+<header >
   <h1>Recruiting room</h1>
+  <div>{{occupiedSeats}} / {{placesInBarrack}} </div>
+</header>
   <div class="characters-grid">
     @for (character of charactersData; track character.id) {
       @if (character?.isTemporary) {

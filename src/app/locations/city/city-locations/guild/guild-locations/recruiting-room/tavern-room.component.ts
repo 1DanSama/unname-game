@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {Store} from '@ngrx/store';
 import {AdventureCreatorService} from './recrutes-sandbox/adventures-creator.service';
 import {RecruitedAdventures} from './recrutes-sandbox/character-creator.interface';
@@ -9,9 +9,14 @@ import {
 } from '../../../../../../store/recruted-adventures/recruited-adventures.selector';
 import {IRecruitedAdventuresState} from '../../../../../../store/recruted-adventures/recruited-adventures.reducer';
 import {IGuildStoreState} from '../../../../../../store/guild-store/guild-store.reducer';
-import {getGoldCount} from '../../../../../../store/guild-store/guild-store.selector';
+import {
+  getGoldCount,
+  selectOccupiedSeats,
+  selectPlacesInBarrack
+} from '../../../../../../store/guild-store/guild-store.selector';
 import {GuildStoreActions} from '../../../../../../store/guild-store/guild-store.actions';
 import {CharacterCardComponent} from '../../../../../../shared/character-card/character-card.component';
+import {AsyncPipe} from '@angular/common';
 
 @Component({
   selector: 'app-recruiting-room',
@@ -27,10 +32,14 @@ export class TavernRoomComponent implements OnInit {
   private goldCount: number = 0;
   private recrutePrise: number = 10;
 
+  public placesInBarrack = 0;
+  public occupiedSeats = 0;
+
   constructor(
     private store: Store<IRecruitedAdventuresState>,
     private adventureCreator: AdventureCreatorService,
-    private readonly guildStore: Store<IGuildStoreState>
+    private readonly guildStore: Store<IGuildStoreState>,
+    private cdr: ChangeDetectorRef
   ) {
     this.store.select(selectTemporaryRecruited).subscribe(data => {
       this.charactersData = data;
@@ -39,7 +48,11 @@ export class TavernRoomComponent implements OnInit {
       this.canRefreshAdventures = boolean;
     });
     this.guildStore.select(getGoldCount).pipe().subscribe((gold) => this.goldCount = gold)
+
+    this.guildStore.select(selectPlacesInBarrack).pipe().subscribe(res => this.placesInBarrack = res)
+    this.guildStore.select(selectOccupiedSeats).pipe().subscribe(res => this.occupiedSeats = res)
   }
+
 
   ngOnInit(): void {
     if (this.canRefreshAdventures) {
@@ -68,8 +81,13 @@ export class TavernRoomComponent implements OnInit {
       }));
 
       this.store.dispatch(RecruitedAdventuresActions.addHiredAdventures({
-        hiredAdventure: character
+        hiredAdventure: {...character, isTemporary: !!(this.placesInBarrack - this.occupiedSeats) }
       }));
+      this.store.dispatch(GuildStoreActions.occupiedPlacesInBarrack({
+        place: 1
+      }));
+
+      this.cdr.markForCheck()
     } else {
       // TODO set notific
     }

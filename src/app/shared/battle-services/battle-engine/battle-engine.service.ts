@@ -1,8 +1,4 @@
-import {
-  IActiveActionStatus,
-  IBattleCharacter, RecruitedAdventures, rowPosition
-} from '../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
-import {Injectable} from '@angular/core';
+import {Injectable, NgZone} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {CountTotalStatsService} from '../count-total-stats.service';
 import {EnemyInitService} from '../enemy-init.service';
@@ -13,6 +9,10 @@ import {PartyPowerCalculatorService} from '../../party-power-calculator.service'
 import {CharacterClass} from '../../../store/recruted-adventures/recruted-abventures.model';
 import {IEnemyPowerSettings} from '../../../battle-field/dattle-field.model';
 import {QuestManagerService} from '../../quest-manager.service';
+import {
+  IActiveActionStatus,
+  IBattleCharacter, RecruitedAdventures, rowPosition
+} from '../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 
 export interface BattleState {
   allies: IBattleCharacter[];
@@ -64,13 +64,14 @@ export class BattleEngineService {
     private battleAction: BattleActionService,
     private targetService: ButtleGetTargetValueService,
     private partyPower: PartyPowerCalculatorService,
-    private questManagerService: QuestManagerService) {
+    private questManagerService: QuestManagerService,
+    private ngZone: NgZone) {
   }
 
   initializeBattle(recruited: RecruitedAdventures[], enemyPower: IEnemyPowerSettings) {
     this.isInitialized = true;
 
-    this.state = {
+    const newState: BattleState = {
       allies: [],
       enemies: [],
       participants: [],
@@ -85,30 +86,23 @@ export class BattleEngineService {
 
     const partyStats = this.partyPower.calculatePartyStats(recruited);
 
-    // Генерація ворогів
     const enemies = this.enemyInit.generateBalancedEnemies(
       partyStats.totalPower * enemyPower.enemyPowerMultiplier,
       enemyPower.averageLevel || partyStats.averageLevel * enemyPower.enemyLevelMultiplier,
       enemyPower.enemyPartySize || partyStats.partySize * enemyPower.enemyPartySizeMultiplier
     );
 
-    // Створення бойових персонажів
     const allies = recruited.map(char => this.createBattleCharacter(char, false));
     const enemyCharacters = enemies.map(enemy => this.createBattleCharacter(enemy, true));
 
-    // Оновлення учасників і рядів битви
-    this.updateParticipants();
-    this.updateBattleRows();
+    newState.allies = allies;
+    newState.enemies = enemyCharacters;
+    newState.isBattleInProgress = true;
+    newState.participants = this.getSortedParticipants(allies, enemyCharacters);
+    newState.battleRows = this.createBattleRows(allies, enemyCharacters);
 
-    // Примусовий запуск битви
+    this.updateState(newState);
     this.processBattleRound();
-    // Синхронне оновлення стану
-    this.updateState({
-      ...this.state,
-      allies: allies,
-      enemies: enemyCharacters,
-      isBattleInProgress: true
-    });
   }
 
   private createBattleCharacter(char: RecruitedAdventures, isEnemy: boolean): IBattleCharacter {
@@ -118,8 +112,8 @@ export class BattleEngineService {
       previousRow: this.getStartPosition(char.className, isEnemy),
       currentRow: this.getStartPosition(char.className, isEnemy),
       characterStats: stats,
-      currentHealth: char.maxHealthPoints || 0,
-      currentMana: char?.maxManaPoints || 0,
+      currentHealth: char.maxHealthPoints ?? 0,
+      currentMana: char.maxManaPoints ?? 0,
       isEnemy: isEnemy,
       initiative: stats.agility + Math.random() * 10,
       isActive: true,
@@ -152,7 +146,6 @@ export class BattleEngineService {
 
   stopBattle() {
     this.isInitialized = false;
-
     clearTimeout(this.battleInterval);
     this.updateState({
       ...this.state,
@@ -168,61 +161,41 @@ export class BattleEngineService {
 
   private processBattleRound() {
     try {
-      // 1. Перевірка стану битви
-      if (this.checkBattleEnd()) {
-        return;
-      }
+      if (this.checkBattleEnd()) return;
 
-      // 2. Оновлення учасників
       this.updateParticipants();
-
       let currentIndex = 0;
+
       const processNext = () => {
-        // 3. Перевірка завершення раунду
         if (currentIndex >= this.state.participants.length) {
           this.handleRoundEnd();
           return;
         }
 
-        // 4. Отримання поточного учасника
         const participant = this.state.participants[currentIndex];
 
-        // 5. Перевірка активності учасника
         if (!participant.isActive || participant.currentHealth <= 0) {
           currentIndex++;
           processNext();
           return;
         }
 
-        // 6. Оновлення індексу ходу
-        this.updateState({
-          ...this.state,
-          currentTurnIndex: currentIndex
-        });
+        this.updateState({...this.state, currentTurnIndex: currentIndex});
 
-        // 7. Виконання дії з затримкою
         this.performAutoAction(participant, () => {
           currentIndex++;
-
-          // 8. Запуск наступного ходу через таймер
           setTimeout(() => {
             if (this.state.isBattleInProgress) {
               processNext();
             }
-
-            // TODO update for encreas battle spead
           }, this.battleSpead);
         });
       };
 
-      // 9. Старт процесу
       processNext();
-
     } catch (error) {
       console.error(error);
       this.stopBattle();
-    } finally {
-      console.groupEnd();
     }
   }
 
@@ -255,6 +228,10 @@ export class BattleEngineService {
       }
     };
 
+    if (!isActive) {
+      console.log('char', char)
+    }
+
     const array = updatedChar.isEnemy ? this.state.enemies : this.state.allies;
     const updatedArray = array.map(c => c.id === updatedChar.id ? updatedChar : c);
 
@@ -264,28 +241,22 @@ export class BattleEngineService {
     });
   }
 
-  private performAutoAction(
-    attacker: IBattleCharacter,
-    onComplete: () => void
-  ) {
+  private performAutoAction(attacker: IBattleCharacter, onComplete: () => void) {
     try {
       const validTargets = this.getValidTargets(attacker);
       this.updateCharacterState({...attacker, currentAction: 'preparing'});
       this.battleAction.performAutoAction(attacker, validTargets, (result) => {
         result.updatedTargets.forEach(t => this.updateCharacterState(t));
-
         if (!result.updatedTargets.some(t => t.id === result.updatedAttacker.id)) {
           this.updateCharacterState(result.updatedAttacker);
         }
-
         this.addToLog(result.logs);
         this.updateParticipants();
-
         onComplete();
       });
     } catch (error) {
       onComplete();
-      console.log('error')
+      console.error( error);
     }
   }
 
@@ -315,7 +286,7 @@ export class BattleEngineService {
 
   private updateState(newState: BattleState) {
     if (JSON.stringify(this.state) === JSON.stringify(newState)) {
-      console.warn('[BattleEngine] 🚨 State update skipped (no changes)');
+      console.warn('[BattleEngine] State update skipped (no changes)');
       return;
     }
 
@@ -324,86 +295,161 @@ export class BattleEngineService {
   }
 
   private getValidTargets(attacker: IBattleCharacter): IBattleCharacter[] {
+    const activeAllies = this.state.allies.filter(a => a.isActive && a.currentHealth > 0);
+    const activeEnemies = this.state.enemies.filter(e => e.isActive && e.currentHealth > 0);
+
     let targets = this.targetService.getValidTargets(
       attacker,
-      this.state.allies,
-      this.state.enemies
+      activeAllies,
+      activeEnemies
     );
 
-    if (attacker.className === CharacterClass.Healer && targets.length === 0) {
-      targets = [attacker];
+    if (attacker.className === CharacterClass.Healer) {
+      const needsSelfHeal = attacker.currentHealth < (attacker.maxHealthPoints * 0.8);
+      const validSelfTarget = attacker.isActive && attacker.currentHealth > 0;
+
+      if (targets.length === 0 && validSelfTarget && needsSelfHeal) {
+        targets = [attacker];
+      }
     }
 
-    if (!targets.length) this.handleNoTargets(attacker);
+    targets = targets.filter(t =>
+      t.isActive &&
+      t.currentHealth > 0 &&
+      this.isInAttackRange(attacker, t)
+    );
+
+    if (targets.length === 0) {
+      this.handleNoTargets(attacker, attacker?.isEnemy ? activeEnemies:activeAllies);
+      return [];
+    }
+
     return targets;
   }
 
-  private handleNoTargets(attacker: IBattleCharacter) {
+  private isInAttackRange(attacker: IBattleCharacter, target: IBattleCharacter): boolean {
+    const rowDifference = Math.abs(attacker.currentRow - target.currentRow);
+    return rowDifference <= attacker.attackRange;
+  }
+
+  private handleNoTargets(attacker: IBattleCharacter, targets: IBattleCharacter[]) {
     const movement = attacker.movementSpeed;
     let newRow: rowPosition;
 
     if (attacker.isEnemy) {
       newRow = Math.max(1, attacker.currentRow - movement) as rowPosition;
     } else {
-      newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
+      if (attacker.className === CharacterClass.Healer) {
+        const allies = targets.filter(t => !t.isEnemy && t.id !== attacker.id);
+
+        if (allies.length === 0) {
+          newRow = attacker.currentRow;
+        } else {
+          const closestAllyInFront = allies.reduce((closest, ally) => {
+            return ally.currentRow > attacker.currentRow && ally.currentRow < closest
+              ? ally.currentRow
+              : closest;
+          }, 6);
+
+          if (closestAllyInFront !== 6) {
+            newRow = Math.min(attacker.currentRow + movement, closestAllyInFront) as rowPosition;
+          } else {
+            const farthestAllyRow = allies.reduce<number>(
+              (max: number, ally: IBattleCharacter) => Math.max(max, ally.currentRow),
+              attacker.currentRow
+            );
+            newRow = Math.min(
+              Math.min(farthestAllyRow, 6),
+              attacker.currentRow + movement
+            ) as rowPosition;
+          }
+        }
+      } else {
+        newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
+      }
     }
+
+    newRow = Math.min(6, Math.max(1, newRow)) as rowPosition;
 
     if (newRow !== attacker.currentRow) {
       this.moveCharacter(attacker, newRow);
     } else {
-      this.addToLog(`${attacker.name} couldn't move!`);
+      this.addToLog(`${attacker.name} couldn't find a path!`);
     }
   }
-
   private moveCharacter(char: IBattleCharacter, newRow: rowPosition) {
-    const otherAllies = this.state.allies.filter(a =>
+    if (newRow === char.currentRow) {
+      return;
+    }
+
+    const blockingAllies = this.state.allies.filter(a =>
       a.id !== char.id &&
       !a.isEnemy &&
-      a.className !== CharacterClass.Healer
+      a.currentRow === newRow
     );
 
     const movementResult = this.battleMoving.calculateMovement(
       char,
       newRow,
-      otherAllies,
+      blockingAllies,
       char.maxRow,
       char.attackRange
     );
 
     if (!movementResult.canMove) {
-      if (movementResult.log) this.addToLog(movementResult.log);
+      if (movementResult.log) {
+        this.addToLog(movementResult.log);
+      }
       return;
     }
 
-    const updatedChar = {
+    const updatedChar: IBattleCharacter = {
+      ...char,
       ...movementResult.updatedChar,
       previousRow: char.currentRow,
       currentRow: newRow,
-      currentAction: 'move'
+      currentAction: 'move',
+      currentHealth: movementResult?.updatedChar?.currentHealth ?? char.currentHealth,
+      currentMana: movementResult?.updatedChar?.currentMana ?? char.currentMana
     };
 
-    const updatedArray = char.isEnemy
-      ? this.state.enemies.map(c => c.id === char.id ? updatedChar : c)
-      : this.state.allies.map(c => c.id === char.id ? updatedChar : c);
+    if (!movementResult?.updatedChar?.currentMana || movementResult?.updatedChar?.currentHealth) {
+      console.log('error movementResult', movementResult)
+      console.log('error with', movementResult?.updatedChar?.currentHealth)
+      console.log('error with',  movementResult?.updatedChar?.currentMana)
+    }
 
-    this.updateState({
-      ...this.state,
-      [char.isEnemy ? 'enemies' : 'allies']: updatedArray
-    });
+    const targetArray = char.isEnemy ? 'enemies' : 'allies';
+    const updatedArray = this.state[targetArray].map(c =>
+      c.id === char.id ? updatedChar : c
+    );
 
-    this.addToLog(movementResult.log!);
-    this.updateBattleRows();
+    if (this.isEqual(this.state[targetArray], updatedArray)) {
+      return;
+    }
 
-    setTimeout(() => {
-      const clearedChar = {...updatedChar, currentAction: undefined};
-      const clearedArray = char.isEnemy
-        ? this.state.enemies.map(c => c.id === char.id ? clearedChar : c)
-        : this.state.allies.map(c => c.id === char.id ? clearedChar : c);
-
+    this.ngZone.run(() => {
       this.updateState({
         ...this.state,
-        [char.isEnemy ? 'enemies' : 'allies']: clearedArray
+        [targetArray]: updatedArray
       });
+      this.addToLog(movementResult.log!);
+      this.updateBattleRows();
+    });
+
+    setTimeout(() => {
+      const clearedArray = this.state[targetArray].map(c =>
+        c.id === char.id ? {...updatedChar, currentAction: undefined} : c
+      );
+
+      if (!this.isEqual(this.state[targetArray], clearedArray)) {
+        this.updateState({
+          ...this.state,
+          [targetArray]: clearedArray
+        });
+      }
+
+      this.updateParticipants();
     }, 700);
   }
 
@@ -414,13 +460,11 @@ export class BattleEngineService {
     if (!enemiesActive || !alliesActive) {
       this.stopBattle();
       if (!enemiesActive) {
-        this.questManagerService.updateQuestProgress('arena', 1)
-        this.addToLog('You win the battle.')
+        this.questManagerService.updateQuestProgress('arena', 1);
+        this.addToLog('You win the battle.');
       }
-
       if (!alliesActive) {
-        this.addToLog('You lost the battle')
-
+        this.addToLog('You lost the battle');
       }
       return true;
     }
@@ -429,8 +473,8 @@ export class BattleEngineService {
 
   private updateParticipants() {
     const participants = [
-      ...this.state.allies.filter(p => p.isActive && p.currentHealth > 0),
-      ...this.state.enemies.filter(p => p.isActive && p.currentHealth > 0)
+      ...this.state.allies.filter(p => p.isActive && p?.currentHealth > 0),
+      ...this.state.enemies.filter(p => p.isActive && p?.currentHealth > 0)
     ].sort((a, b) => b.initiative - a.initiative);
 
     if (participants.length === 0) {
@@ -443,11 +487,10 @@ export class BattleEngineService {
   }
 
   private updateBattleRows() {
-    // TODO fix bug with row color after death
     const battleRows = [1, 2, 3, 4, 5, 6].map(row => ({
       rowNumber: row,
-      allies: this.state.allies.filter(a => a.currentRow === row),
-      enemies: this.state.enemies.filter(e => e.currentRow === row)
+      allies: this.state.allies.filter(a => a.currentRow === row && a.isActive),
+      enemies: this.state.enemies.filter(e => e.currentRow === row && e.isActive)
     }));
 
     this.updateState({...this.state, battleRows});
@@ -466,7 +509,7 @@ export class BattleEngineService {
       ...c,
       currentAction: undefined,
       isActionCompleted: false,
-      isActive: c.currentHealth > 0
+      isActive: c?.currentHealth > 0
     });
 
     this.updateState({
@@ -478,17 +521,15 @@ export class BattleEngineService {
 
   private getStartPosition(className: string, isEnemy: boolean): rowPosition {
     if (isEnemy) {
-      if (className.includes('Warrior')) return 4;
-      if (className.includes('Rogue')) return 5;
-      return 6;
+      return className === CharacterClass.Warrior ? 4 :
+        className === CharacterClass.Rogue ? 5 : 6;
     }
-    if (className.includes(CharacterClass.Warrior)) return 3;
-    if (className.includes(CharacterClass.Rogue)) return 2;
-    return 1;
+    return className === CharacterClass.Warrior ? 3 :
+      className === CharacterClass.Rogue ? 2 : 1;
   }
 
   private calculateAttackRange(className: string): number {
-    return className.includes('Warrior') || className.includes('Rogue') ? 1 : 3;
+    return className === CharacterClass.Warrior || className === CharacterClass.Rogue ? 1 : 3;
   }
 
   private calculateMovementSpeed(className: string): number {
@@ -506,7 +547,55 @@ export class BattleEngineService {
     }
   }
 
+  private getSortedParticipants(allies: IBattleCharacter[], enemies: IBattleCharacter[]): IBattleCharacter[] {
+    return [...allies, ...enemies]
+      .filter(p => p.isActive && p?.currentHealth > 0)
+      .sort((a, b) => b.initiative - a.initiative);
+  }
+
+  private createBattleRows(allies: IBattleCharacter[], enemies: IBattleCharacter[]): BattleRow[] {
+    return [1, 2, 3, 4, 5, 6].map(row => ({
+      rowNumber: row,
+      allies: allies.filter(a => a?.currentRow === row && a.isActive),
+      enemies: enemies.filter(e => e?.currentRow === row && e.isActive)
+    }));
+  }
+
+  private isEqual(a: any, b: any): boolean {
+    if (a === b) return true;
+
+    if (a == null || b == null) return a === b;
+
+    if (a instanceof Date && b instanceof Date) {
+      return a.getTime() === b.getTime();
+    }
+
+    if (Array.isArray(a) && Array.isArray(b)) {
+      if (a.length !== b.length) return false;
+      for (let i = 0; i < a.length; i++) {
+        if (!this.isEqual(a[i], b[i])) return false;
+      }
+      return true;
+    }
+
+    if (typeof a === 'object' && typeof b === 'object') {
+      const aKeys = Object.keys(a);
+      const bKeys = Object.keys(b);
+
+      if (aKeys.length !== bKeys.length) return false;
+
+      for (const key of aKeys) {
+        if (!b.hasOwnProperty(key)) return false;
+        if (!this.isEqual(a[key], b[key])) return false;
+      }
+      return true;
+    }
+
+    return false;
+  }
+
   ngOnDestroy() {
+    this.stopBattle();
     this.destroy$.next();
     this.destroy$.complete();
   }

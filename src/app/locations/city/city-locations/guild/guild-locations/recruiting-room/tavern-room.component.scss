@@ -1,6 +1,11 @@
 .recruiting-room {
   padding: 20px;
 
+  header {
+    display: flex;
+    justify-content: space-between;
+  }
+
   .characters-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);

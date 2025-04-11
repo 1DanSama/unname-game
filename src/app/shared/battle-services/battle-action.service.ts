@@ -46,7 +46,7 @@ export class BattleActionService {
 
     // Target selection
     if (attacker.className === CharacterClass.Healer) {
-      const healingTargets = validTargets.filter(t => t.currentHealth < t.maxHealthPoints);
+      const healingTargets = validTargets.filter(t => t?.currentHealth < t.maxHealthPoints);
       target = healingTargets.length > 0
         ? this.selectTarget(healingTargets)
         : null;
@@ -54,7 +54,7 @@ export class BattleActionService {
       target = this.selectTarget(validTargets);
     }
 
-    if (!target) {
+    if (!target || !target?.isActionCompleted) {
       logs.push(`${attacker.name} не знайшов цілей!`);
       onComplete({
         updatedAttacker: { ...attacker,
@@ -73,16 +73,17 @@ export class BattleActionService {
     let damageAmount = 0;
     let healAmount = 0;
 
-    if (attacker.className === CharacterClass.Healer) {
-      const healResult = this.performHeal(attacker, [target]);
-      result = healResult.updatedTargets;
-      healAmount = healResult.healAmount;
-    } else {
-      const attackResult = this.performAttack(attacker, [target]);
-      result = attackResult.updatedTargets;
-      damageAmount = attackResult.damageAmount;
-    }
-
+    // if () {
+      if (attacker.className === CharacterClass.Healer) {
+        const healResult = this.performHeal(attacker, [target]);
+        result = healResult.updatedTargets;
+        healAmount = healResult.healAmount;
+      } else {
+        const attackResult = this.performAttack(attacker, [target]);
+        result = attackResult.updatedTargets;
+        damageAmount = attackResult.damageAmount;
+      }
+    // }
     onComplete({
       updatedAttacker: {
         ...attacker,
@@ -101,7 +102,7 @@ export class BattleActionService {
   private selectTarget(targets: IBattleCharacter[]): IBattleCharacter {
     if (!targets?.length) return {} as IBattleCharacter;
     return targets.reduce((prev, current) =>
-      (current.currentHealth < prev.currentHealth) ? current : prev
+      (current?.currentHealth < prev.currentHealth) ? current : prev
     );
   }
 
@@ -127,11 +128,12 @@ export class BattleActionService {
       this.damageCalculator.calculateCriticalStrike(attacker, target, baseDamage);
 
     const totalDamage = Math.floor(finalDamage);
-    const newHealth = Math.max(0, target.currentHealth - totalDamage);
+    const newHealth = Math.max(0, ((target?.currentHealth - totalDamage) || 0));
 
+    console.log('target', target)
     const updatedTarget = {
       ...target,
-      currentHealth: newHealth,
+      currentHealth: newHealth || 0,
       activeActionStatus: {
         ...target.activeActionStatus,
         isTakingDamage: true,
@@ -173,12 +175,15 @@ if(t?.id === target?.id ) {
       };
     }
 
-    const target = validTargets.sort((a, b) => a.currentHealth - b.currentHealth)[0];
-    const healAmount = Math.floor((healer.characterStats.intellect + (healer?.equipeStats[EquipStat.MagicAttack] || 0)) / this.HEAL_DIVIDER);
+    const target = validTargets.sort((a, b) => a?.currentHealth - b?.currentHealth)[0];
+    if (!target?.currentHealth) {
+      console.log('target', target)
+    }
 
+    const healAmount = Math.floor((healer.characterStats.intellect + (healer?.equipeStats[EquipStat.MagicAttack] || 0)) / this.HEAL_DIVIDER);
     const updatedTarget = {
       ...target,
-      currentHealth: Math.min(target.currentHealth + healAmount, target.maxHealthPoints),
+      currentHealth: Math.min((target?.currentHealth || 0) + healAmount, target.maxHealthPoints),
       activeActionStatus: {
         ...target.activeActionStatus,
         isHeal: true

@@ -17,3 +17,13 @@ export const selectEquipment = createSelector(
   selectRecruitedAdventuresState,
   (state: IGuildStoreState) => state.store.equipment
 );
+
+export const selectPlacesInBarrack = createSelector(
+  selectRecruitedAdventuresState,
+  (state: IGuildStoreState) => state.baraks.placesInBarrack
+);
+
+export const selectOccupiedSeats = createSelector(
+  selectRecruitedAdventuresState,
+  (state: IGuildStoreState) => state.baraks.occupiedSeats
+);

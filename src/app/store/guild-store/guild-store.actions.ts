@@ -14,5 +14,6 @@ export const GuildStoreActions = createActionGroup({
     'Remove materials': props<{ materialName: string, amount: number }>(),
     'Set equipment to store': props<{ equipment: ItemForEquip }>(),
     'Remove equipment to store': props<{ slot: string, itemId: string  }>(),
+    'Occupied places in barrack': props<{ place: number }>(),
   }
 });

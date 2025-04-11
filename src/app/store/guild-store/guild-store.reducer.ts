@@ -45,7 +45,7 @@ export interface IGuildStoreState {
     materials: IMaterials
   }
   baraks: {
-    freePlases: number;
+    placesInBarrack: number;
     occupiedSeats: number;
   }
 }
@@ -63,7 +63,7 @@ export const initialState: IGuildStoreState = adapter.getInitialState({
     }
   },
   baraks: {
-    freePlases: 4,
+    placesInBarrack: 4,
     occupiedSeats: 0
   }
 });
@@ -74,6 +74,15 @@ export const reducer = createReducer(
     ...state,
     gold: state.gold + gold
   })),
+  on(GuildStoreActions.occupiedPlacesInBarrack, (state, { place }) => {
+    return {
+      ...state,
+      baraks: {
+        ...state.baraks,
+        occupiedSeats: state.baraks.placesInBarrack >= (state.baraks.occupiedSeats + place) ? state.baraks.occupiedSeats + place : state.baraks.placesInBarrack
+      }
+    }
+  }),
   on(GuildStoreActions.decreaseGold, (state, { gold }) => ({
     ...state,
     gold: state.gold - gold
