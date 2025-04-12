@@ -54,6 +54,7 @@ export const reducer = createReducer(
       activeQuests: filtredQuestions
     }
   }),
+  on(QuestsStoreActions.hardSetFromUserLoad, (state, {loadedState}) => loadedState),
 );
 
 export const questStoreReducer = reducer;

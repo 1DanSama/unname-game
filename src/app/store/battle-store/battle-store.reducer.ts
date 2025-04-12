@@ -37,7 +37,8 @@ export const reducer = createReducer(
     ...state,
     battleState
   })),
-  on(BattleStoreActions.endBattle, () => initialState)
+  on(BattleStoreActions.endBattle, () => initialState),
+  on(BattleStoreActions.hardSetFromUserLoad, (state, {loadedState}) => loadedState),
 );
 
 export const battleStoreReducer = reducer;

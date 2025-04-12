@@ -1,13 +1,12 @@
-import { createActionGroup, emptyProps, props } from '@ngrx/store';
-import {
-  ICharacter, RecruitedAdventures
-} from 'app/locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
+import { createActionGroup, props } from '@ngrx/store';
 import {ItemForEquip} from './models/item.model';
+import {IGuildStoreState} from './guild-store.reducer';
 
 
 export const GuildStoreActions = createActionGroup({
   source: 'GuildStore/API',
   events: {
+    'Hard Set From User Load': props<{loadedState: IGuildStoreState}>(),
     'Increase Gold': props<{ gold: number }>(),
     'Decrease Gold': props<{ gold: number }>(),
     'Add materials': props<{ materialName: string, amount: number }>(),

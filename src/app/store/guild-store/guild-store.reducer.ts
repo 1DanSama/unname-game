@@ -6,6 +6,7 @@ import {
 } from 'app/locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {EquipmentSlot, ItemForEquip} from './models/item.model';
 import {apprenticeStaff, bronzeSword, commonSword, oakStaff} from './models/mock-default-items.model';
+import {BattleStoreActions} from '../battle-store/battle-store.actions';
 
 // Updated type with index signature
 export type TEquipmentSlots = {
@@ -132,7 +133,8 @@ export const reducer = createReducer(
         [slot]: (state.store.equipment[slot] || []).filter(item => item.id !== itemId)
       }
     }
-  }))
+  })),
+  on(GuildStoreActions.hardSetFromUserLoad, (state, {loadedState}) => loadedState),
 );
 
 export const guildStoreReducer = reducer;

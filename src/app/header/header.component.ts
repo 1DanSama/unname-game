@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {Router} from '@angular/router';
 import {IGuildStoreState, IMaterials} from '../store/guild-store/guild-store.reducer';
 import {Store} from '@ngrx/store';
@@ -13,16 +13,21 @@ import {QuestsMenueModalComponent} from './header-modals/quests-menue-modal/ques
 import {
   GuildResourcesMenueModalComponent
 } from './header-modals/guild-resources-menue-modal/guild-resources-menue-modal.component';
+import {SaveLoadService} from '../save-load/save-load.service';
+import {LoadModalComponent} from '../save-load/load-modal/load-modal.component';
 
 @Component({
   selector: 'app-header',
   imports: [
-    AsyncPipe
+    AsyncPipe,
+    LoadModalComponent
   ],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
+  showLoadModal = false;
+
   goldCount$: Observable<number>
   quests$: Observable<IBaseQuest[]>
   materials$: Observable<IMaterials>
@@ -34,6 +39,7 @@ export class HeaderComponent {
     private readonly guildStore: Store<IGuildStoreState>,
     private readonly questsStore: Store<IQuestsStoresState>,
     private dialog: MatDialog,
+    private saveLoad: SaveLoadService,
   ) {
     this.goldCount$ = this.guildStore.select(getGoldCount);
     this.materials$ = this.guildStore.select(getMaterialsCount)
@@ -71,5 +77,13 @@ export class HeaderComponent {
         panelClass: 'quests-modal'
       });
     });
+  }
+
+  saveGame() {
+    this.saveLoad.saveGame();
+  }
+
+  loadGame() {
+    this.saveLoad.saveGame();
   }
 }

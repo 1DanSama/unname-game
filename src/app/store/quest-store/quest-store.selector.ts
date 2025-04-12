@@ -7,3 +7,8 @@ export const getAllActiveQuests = createSelector(
   selectActiveQuestsState,
   (state:IQuestsStoresState) => state.activeQuests
 );
+
+export const getAllFromActiveQuestsStore = createSelector(
+  selectActiveQuestsState,
+  (state:IQuestsStoresState) => state
+);

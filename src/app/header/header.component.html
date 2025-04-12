@@ -7,6 +7,13 @@
     <button class="quests-button" (click)="toggleQuestsModal()">
       Active Quests ({{ (quests$ | async)?.length }})
     </button>
+  <div>
+    <button (click)="saveGame()">Save Game</button>
+    <button (click)="showLoadModal = true">Load Game</button>
+    @if(showLoadModal) {
+      <app-load-modal (close)="showLoadModal = false"/>
+    }
+  </div>
     <div class="gold" (click)="showResourcesModal()">
       <span class="gold-coin"></span>
       {{ goldCount$ | async }}

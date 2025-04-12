@@ -1,0 +1,13 @@
+@if (visible) {
+  <div class="modal-overlay" (click)="close()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Load Game</h2>
+      <input type="file" #fileInput (change)="handleFileInput($event)" accept=".save">
+      <div class="status-message">
+<!--        <div *ngIf="loading" class="loading">Loading...</div>-->
+<!--        <div *ngIf="error" class="error">{{ error }}</div>-->
+      </div>
+      <button (click)="close()">Cancel</button>
+    </div>
+  </div>
+}

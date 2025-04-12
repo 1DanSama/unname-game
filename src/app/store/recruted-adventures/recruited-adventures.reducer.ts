@@ -4,6 +4,7 @@ import {RecruitedAdventuresActions} from './recruited-adventures.actions';
 import {
   RecruitedAdventures
 } from 'app/locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
+import {QuestsStoreActions} from '../quest-store/quests-store.actions';
 
 export interface IRecruitedAdventuresState extends EntityState<RecruitedAdventures> {
   temporaryRecruitedAdventures: RecruitedAdventures[];
@@ -77,6 +78,7 @@ export const reducer = createReducer(
       };
     }
   ),
+  on(RecruitedAdventuresActions.hardSetFromUserLoad, (state, {loadedState}) => loadedState),
 );
 
 

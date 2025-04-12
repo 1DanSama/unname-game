@@ -19,3 +19,8 @@ export const selecCanRefreshAdventures = createSelector(
   selectRecruitedAdventuresState,
   (state:IRecruitedAdventuresState) => state?.canRefreshAdventures
 );
+
+export const selecAllFromRecruitedAdventuresStore = createSelector(
+  selectRecruitedAdventuresState,
+  (state:IRecruitedAdventuresState) => state
+);

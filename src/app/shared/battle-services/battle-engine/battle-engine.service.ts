@@ -334,36 +334,48 @@ export class BattleEngineService {
 
   private handleNoTargets(attacker: IBattleCharacter, targets: IBattleCharacter[]) {
     const movement = attacker.movementSpeed;
-    let newRow: rowPosition;
+    let newRow: rowPosition = attacker.currentRow;
 
-    if (attacker.isEnemy) {
-      newRow = Math.max(1, attacker.currentRow - movement) as rowPosition;
-    } else {
-      if (attacker.className === CharacterClass.Healer) {
-        const allies = targets.filter(t => !t.isEnemy && t.id !== attacker.id);
+    if (attacker.className === CharacterClass.Healer) {
+      const comrades = targets.filter(t =>
+        t.isEnemy === attacker.isEnemy &&
+        t.id !== attacker.id &&
+        t.currentHealth > 0
+      );
 
-        if (allies.length === 0) {
-          newRow = attacker.currentRow;
-        } else {
-          const closestAllyInFront = allies.reduce((closest, ally) => {
-            return ally.currentRow > attacker.currentRow && ally.currentRow < closest
-              ? ally.currentRow
-              : closest;
-          }, 6);
+      if (comrades.length > 0) {
+        const nearestComrade = comrades.reduce((closest: IBattleCharacter | null, comrade) => {
+          if (!closest) return comrade;
 
-          if (closestAllyInFront !== 6) {
-            newRow = Math.min(attacker.currentRow + movement, closestAllyInFront) as rowPosition;
-          } else {
-            const farthestAllyRow = allies.reduce<number>(
-              (max: number, ally: IBattleCharacter) => Math.max(max, ally.currentRow),
-              attacker.currentRow
+          const closestDistance = Math.abs(attacker.currentRow - closest.currentRow);
+          const comradeDistance = Math.abs(attacker.currentRow - comrade.currentRow);
+
+          if (comradeDistance > attacker.attackRange) {
+            if (closest.currentRow === attacker.currentRow ||
+              comradeDistance < closestDistance) {
+              return comrade;
+            }
+          }
+          return closest;
+        }, null);
+
+        if (nearestComrade) {
+          const distance = nearestComrade.currentRow - attacker.currentRow;
+          const absoluteDistance = Math.abs(distance);
+
+          if (absoluteDistance > attacker.attackRange) {
+            const direction = distance > 0 ? 1 : -1;
+            const maxMovement = Math.min(
+              movement,
+              absoluteDistance - attacker.attackRange
             );
-            newRow = Math.min(
-              Math.min(farthestAllyRow, 6),
-              attacker.currentRow + movement
-            ) as rowPosition;
+            newRow = attacker.currentRow + (direction * maxMovement);
           }
         }
+      }
+    } else {
+      if (attacker.isEnemy) {
+        newRow = Math.max(1, attacker.currentRow - movement) as rowPosition;
       } else {
         newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
       }
@@ -374,9 +386,11 @@ export class BattleEngineService {
     if (newRow !== attacker.currentRow) {
       this.moveCharacter(attacker, newRow);
     } else {
-      this.addToLog(`${attacker.name} couldn't find a path!`);
+      const faction = attacker.isEnemy ? "enemy" : "ally";
+      this.addToLog(`${attacker.name} (${faction} healer) holds position`);
     }
   }
+
   private moveCharacter(char: IBattleCharacter, newRow: rowPosition) {
     if (newRow === char.currentRow) {
       return;
