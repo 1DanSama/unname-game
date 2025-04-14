@@ -10,11 +10,7 @@ export class DungeonEventsService {
   constructor() { }
 
   getRandomEvent(roomType: DungeonArea, wasVisited: boolean) {
-    console.log('roomType', roomType)
-    console.log('dungeonEvents', dungeonEvents)
     if(wasVisited && dungeonEvents[roomType]) {
-      console.log('dungeonEvents[roomType]',  dungeonEvents[roomType])
-      console.log(dungeonEvents[roomType][Math.floor(Math.random()*dungeonEvents[roomType].length)])
     }
   }
 }

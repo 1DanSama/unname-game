@@ -48,7 +48,7 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
 
   isActiveTurn$ = this.isActiveTurnSubject.pipe(
     distinctUntilChanged(),
-    switchMap(isActive => isActive ? concat(of(true), timer(700).pipe(mapTo(false))) : of(false))
+    switchMap(isActive => isActive ? concat(of(true), timer(500).pipe(mapTo(false))) : of(false))
   );
   @HostBinding('style.--evasion-translate-end') translateEvasionEnd = '';
   @HostBinding('style.--hit-translate-end') translateHitEnd = '';

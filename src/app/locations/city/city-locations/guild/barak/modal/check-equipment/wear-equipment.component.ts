@@ -34,9 +34,7 @@ export class CheckEquipmentComponent {
 ) {
     this.character = data.character;
     this.recruitedStore.select(selectRecruited).subscribe((data: RecruitedAdventures[]) => {
-      console.log('data', data)
       this.character = data.find(char => char.id === this.character?.id) || this.character
-      console.log('this.character', this.character )
     });
   }
 

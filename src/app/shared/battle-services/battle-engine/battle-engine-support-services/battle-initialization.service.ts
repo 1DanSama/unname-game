@@ -45,17 +45,20 @@ export class BattleInitializationService {
       ...char,
       currentHealth: char.maxHealthPoints,
       currentRow: strategy.getStartPosition(isEnemy),
+      previousRow: strategy.getStartPosition(isEnemy),
       attackRange: strategy.getAttackRange(),
       movementSpeed: strategy.getMovementSpeed(),
-      isEnemy,
+      isEnemy: false,
       initiative: this.calculateInitiative(char),
       activeActionStatus: this.defaultActionStatus(),
-      isActionCompleted: false
+      isActionCompleted: false,
+      canMoveForward: true,
+      isActive: true
     };
   }
 
   private calculateInitiative(char: any): number {
-    return char.agility + Math.random() * 10;
+    return char.personalStats.agility + Math.random() * 10;
   }
 
   private defaultActionStatus() {
@@ -84,7 +87,6 @@ export class BattleInitializationService {
 
   private generateEnemies(allies: IBattleCharacter[], enemyPower: IEnemyPowerSettings) {
     const partyStats = this.partyPower.calculatePartyStats(allies);
-    console.log('partyStats', partyStats)
 
     return this.enemyInit.generateBalancedEnemies(
       partyStats.totalPower * enemyPower.enemyPowerMultiplier,

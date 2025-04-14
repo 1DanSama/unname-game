@@ -30,7 +30,6 @@ export class BarakComponent {
   }
 
   openEquipmentModal(character:RecruitedAdventures): void {
-    console.log(' this.recruitedCharactersData',  this.recruitedCharactersData)
     const dialogRef = this.dialog.open(CheckEquipmentComponent, {
       minWidth: '60vw',
       maxWidth: '60vw',

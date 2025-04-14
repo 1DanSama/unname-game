@@ -22,6 +22,6 @@ export class BattlePriorityService {
 
   getPriorityTarget(attacker: IBattleCharacter, targets: IBattleCharacter[]): IBattleCharacter | null {
     const strategy = this.strategies.get(attacker.className) || this.warriorStrategy;
-    return strategy.selectTarget(targets.filter(t => t.isActive));
+    return strategy.selectTarget(targets.filter(t => t.isActive || t.currentHealth > 0));
   }
 }

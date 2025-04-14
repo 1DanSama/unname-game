@@ -38,7 +38,6 @@ export class BattleStateService {
 
   updateState(updater: (state: BattleState) => BattleState) {
     const newState = this.produceNextState(updater);
-    console.log('newState', newState)
 
     this.stateStore.next(newState);
   }

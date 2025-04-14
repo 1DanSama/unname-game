@@ -39,7 +39,6 @@ export class ChangeEquipComponent {
 
   onSlotChange(): void {
     this.guildStore.select(selectEquipment).subscribe(items => {
-      console.log('items', items)
       this.itemsForSlot = items[this.data.slot] || []
     });
   }

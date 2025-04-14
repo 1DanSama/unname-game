@@ -70,7 +70,7 @@ export class BattleFieldComponent implements OnDestroy {
       .pipe(
         publish(shared$ => concat(
           shared$.pipe(take(1)),
-          shared$.pipe(skip(1), throttleTime(1000))
+          shared$.pipe(skip(1), throttleTime(30))
         ))
       )
       .subscribe(state => {

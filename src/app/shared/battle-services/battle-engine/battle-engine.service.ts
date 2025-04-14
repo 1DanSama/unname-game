@@ -51,9 +51,7 @@ export class BattleEngineService implements OnDestroy {
     private logger: BattleLoggerService,
     private actionService: BattleActionService,
     private battleMoving: BattleCharacterMovingService,
-  ) {
-    this.stateService.setInitialized(true)
-  }
+  ) {}
 
   initializeBattle(recruited: RecruitedAdventures[], enemyPower: IEnemyPowerSettings) {
 
@@ -62,10 +60,13 @@ export class BattleEngineService implements OnDestroy {
     this.stateService.resetState();
     const initialState = this.initService.createInitialState(recruited, enemyPower);
 
+    console.log('initialState', initialState)
+
     // console.log('initialState', initialState)
 
     // console.log('this.createBattleRows(initialState.allies, initialState.enemies)', this.createBattleRows(initialState.allies, initialState.enemies))
     // console.log('this.getSortedParticipants(initialState.allies, initialState.enemies)', this.getSortedParticipants(initialState.allies, initialState.enemies))
+    console.log('initialState.allies, initialState.enemies', initialState.allies, initialState.enemies)
     this.stateService.updateState(() => ({
       ...initialState,
       battleRows: this.createBattleRows(initialState.allies, initialState.enemies),
@@ -85,12 +86,11 @@ export class BattleEngineService implements OnDestroy {
 
   private getSortedParticipants(allies: IBattleCharacter[], enemies: IBattleCharacter[]): IBattleCharacter[] {
     return [...allies, ...enemies]
-      .filter(p => p.isActive && p?.currentHealth > 0)
+      .filter(p => p.isActive || p?.currentHealth > 0)
       .sort((a, b) => b.initiative - a.initiative);
   }
 
   startBattle() {
-    // console.log('startBattle')
     this.stateService.updateState(state => ({
       ...state,
       isBattleInProgress: true,
@@ -102,50 +102,48 @@ export class BattleEngineService implements OnDestroy {
   private processBattleTurns() {
     if (!this.stateService.currentState.isBattleInProgress) return;
 
-    this.stateService.state$
-      .pipe(
-        take(1),
-        takeUntil(this.destroy$),
-        switchMap(state => {
-          if (!state.isBattleInProgress || this.checkBattleEnd()) return EMPTY;
+    this.stateService.state$.pipe(
+      take(1),
+      takeUntil(this.destroy$),
+      switchMap(state => {
+        if (!state.isBattleInProgress || this.checkBattleEnd()) return EMPTY;
 
-          return from([...state.participants]).pipe(
-            concatMap(participant =>
-              this.processParticipant(participant).pipe(
-                delay(this.turnDelay) // turnDelay is now a number
-              )
-            ),
-            tap({
-              complete: () => {
-                if (this.stateService.currentState.isBattleInProgress) {
-                  timer(this.roundDelay).subscribe(() => {
-                    this.handleRoundCompletion();
-                  });
-                }
-              }
-            })
-          );
-        })
-      )
-      .subscribe();
+        return from([...state.participants]).pipe(
+          concatMap(participant => {
+              return this.processParticipant(participant)
+            }
+          ),
+
+          concatMap(() => timer(this.roundDelay).pipe(
+            takeUntil(this.destroy$),
+            switchMap(() => EMPTY)
+          )),
+          // Handle round completion after delay
+          finalize(() => {
+            this.handleRoundCompletion();
+            // }
+          })
+        );
+      })
+    ).subscribe();
   }
 
-
   private handleRoundCompletion() {
-    // console.log('handleRoundCompletion')
-    // Не оновлюємо раунд, якщо битва завершена
-    if (!this.stateService.currentState.isBattleInProgress) return;
 
     this.stateService.updateState(state => ({
       ...state,
       currentRound: state.currentRound + 1
     }));
 
+    this.logger.addLog(`--- Round ${this.stateService.currentState.currentRound + 1} Starts ---`);
+
     this.updateParticipants();
     this.processBattleTurns();
   }
 
   private processParticipant(participant: IBattleCharacter) {
+    if(!participant.isEnemy) {
+    }
     // console.log('processParticipant')
     return new Observable<void>(observer => {
       const currentState = this.stateService.currentState;
@@ -176,13 +174,10 @@ export class BattleEngineService implements OnDestroy {
 
   private executeParticipantAction(participant: IBattleCharacter, onComplete: () => void) {
     const { allies, enemies } = this.stateService.currentState;
-    // console.log('participant', participant)
-    // console.log('allies', allies)
-    // console.log('enemies', enemies)
+
     const validTargets = this.targetService.getValidTargets(participant, allies, enemies);
 
     if (validTargets.length === 0) {
-      // console.log('validTargets.length === 0', validTargets.length === 0)
       this.handleNoTargets(participant);
       onComplete();
       return;
@@ -196,30 +191,35 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private updateParticipantStates(result: IPerformAutoActionResult) {
-    // console.log('updateParticipantStates')
     this.stateService.updateState(state => {
-      // Глибоке оновлення через map()
-      const newAllies = state.allies.map(a =>
-        a.id === result.updatedAttacker.id ?
-          {...a, ...result.updatedAttacker} :
-          a
-      );
+      const updatedAllies = state.allies.map(a => {
+        // Update the attacker
+        if (a.id === result.updatedAttacker.id) {
+          return { ...a, ...result.updatedAttacker };
+        }
 
-      const newEnemies = state.enemies.map(e => {
-        const updated = result.updatedTargets.find(t => t.id === e.id);
-        if (!updated) return e;
+        const updatedTarget = result.updatedTargets.find(t => t.id === a.id);
+        if (!updatedTarget) return a;
 
-        // Автоматична деактивація мертвих
-        return updated.currentHealth <= 0 ?
-          {...updated, isActive: false} :
-          {...e, ...updated};
+        return updatedTarget.currentHealth <= 0
+          ? { ...updatedTarget, isActive: false }
+          : { ...a, ...updatedTarget };
+      });
+
+      const updatedEnemies = state.enemies.map(e => {
+        const updatedTarget = result.updatedTargets.find(t => t.id === e.id);
+        if (!updatedTarget) return e;
+
+        return updatedTarget.currentHealth <= 0
+          ? { ...updatedTarget, isActive: false }
+          : { ...e, ...updatedTarget };
       });
 
       return {
         ...state,
-        allies: newAllies,
-        enemies: newEnemies,
-        participants: this.getSortedParticipants(newAllies, newEnemies)
+        allies: updatedAllies,
+        enemies: updatedEnemies,
+        participants: this.getSortedParticipants(updatedAllies, updatedEnemies)
       };
     });
 
@@ -236,6 +236,8 @@ export class BattleEngineService implements OnDestroy {
     } else {
       // Allies move forward (towards higher rows)
       newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
+      console.log('isEnemy newRow', newRow)
+
     }
 
     if (newRow !== attacker.currentRow) {
@@ -249,7 +251,6 @@ export class BattleEngineService implements OnDestroy {
     const { allies, enemies } = this.stateService.currentState;
     const otherAllies = allies.filter(a =>
       a.id !== char.id &&
-      !a.isEnemy &&
       a.className !== CharacterClass.Healer
     );
 
@@ -287,7 +288,7 @@ export class BattleEngineService implements OnDestroy {
     this.updateBattleRows();
 
     // Скидаємо анімацію через 500мс
-    setTimeout(() => {
+    // setTimeout(() => {
       const clearedChar = {...updatedChar, currentAction: undefined};
       const clearedArray = char.isEnemy
         ? enemies.map(c => c.id === char.id ? clearedChar : c)
@@ -297,7 +298,7 @@ export class BattleEngineService implements OnDestroy {
         ...state,
         [char.isEnemy ? 'enemies' : 'allies']: clearedArray
       }));
-    }, 500);
+    // }, 500);
   }
 
   private updateBattleRows() {
@@ -330,27 +331,29 @@ export class BattleEngineService implements OnDestroy {
     const enemiesAlive = enemies.some(e => e.currentHealth > 0);
 
     if (!alliesAlive || !enemiesAlive) {
-      console.log('Ending battle!');
-      this.endBattle(!enemiesAlive);
-      this.destroy$.next(); // Сповіщуємо про завершення
-      this.destroy$.complete(); // Забороняємо нові підписки
+      // console.log('allies', allies)
+      // console.log('enemies', enemies)
+      // console.log('Ending battle!');
+      if (!enemiesAlive) {
+        this.addToLog('You win the battle.');
+        this.questManager.updateQuestProgress('arena', 1);
+      }
+      if (!alliesAlive) {
+        this.addToLog('You lost the battle');
+      }
+      this.endBattle();
+      this.destroy$.next();
+      this.destroy$.complete();
       return true;
     }
     return false;
   }
 
-  private endBattle(victory: boolean) {
+  private endBattle() {
     this.stateService.updateState(state => ({
       ...state,
       isBattleInProgress: false
     }));
-
-    if (victory) {
-      this.questManager.updateQuestProgress('arena', 1);
-      this.logger.addLog('You win the battle!');
-    } else {
-      this.logger.addLog('You lost the battle');
-    }
   }
 
   ngOnDestroy() {

@@ -32,6 +32,9 @@ export class TargetSelectionService {
     attacker: IBattleCharacter,
     allies: IBattleCharacter[],
     enemies: IBattleCharacter[]): IBattleCharacter[] {
+    // if (!attacker.isEnemy) {
+    //   console.log('11111111111111111111111')
+    // }
 
     let targets = this.getValidTargets2(
       attacker,
@@ -40,7 +43,7 @@ export class TargetSelectionService {
     );
 
     if (attacker.className === CharacterClass.Healer) {
-      const needsSelfHeal = attacker.currentHealth < (attacker.maxHealthPoints * 0.8);
+      const needsSelfHeal = attacker.currentHealth <= (attacker.maxHealthPoints * 0.8);
       const validSelfTarget = attacker.isActive && attacker.currentHealth > 0;
 
       if (targets.length === 0 && validSelfTarget && needsSelfHeal) {
@@ -54,7 +57,10 @@ export class TargetSelectionService {
       this.isInAttackRange(attacker, t)
     );
 
-    console.log('targets', targets)
+    if (!attacker.isEnemy) {
+      console.log('!isEnemy targets', targets)
+    }
+
     if (targets.length === 0) {
       return [];
     }
@@ -74,6 +80,9 @@ export class TargetSelectionService {
       ? ownTeam
       : opposingTeam;
 
+    if (!attacker.isEnemy) {
+      console.log('availableTargets', availableTargets)
+    }
     const activeTargets = availableTargets.filter(t => (t?.isActive || t?.currentHealth > 0) && this.isInAttackRange(attacker, t));
 
     if (attacker.className === CharacterClass.Healer) {

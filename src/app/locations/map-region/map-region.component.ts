@@ -8,7 +8,7 @@ import {FortPostMenuComponent} from './map-region-modals/fort-post-menu/fort-pos
   templateUrl: './map-region.component.html',
   styleUrls: ['./map-region.component.scss']
 })
-export class MapRegionComponent implements OnInit {
+export class MapRegionComponent {
   zones = [
     { id: 1, name: 'North Zone 1', health: 25, position: 'north' },
     { id: 2, name: 'East Zone 1', health: 25, position: 'east' },
@@ -139,9 +139,5 @@ export class MapRegionComponent implements OnInit {
         console.log('result', result)
       }
     })
-  }
-
-  ngOnInit(): void {
-    console.log('Component initialized');
   }
 }

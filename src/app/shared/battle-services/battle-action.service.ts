@@ -31,13 +31,13 @@ export class BattleActionService {
     validTargets: IBattleCharacter[],
     onComplete: (result: IPerformAutoActionResult) => void
   ) {
-    console.log('performAutoAction for:', attacker.name);
-
     let target: IBattleCharacter | null = null;
     const logs: string[] = [];
     const updatedTargets: IBattleCharacter[] = [];
 
-    if (!attacker.isActive) {
+    console.log('performAutoAction attacker', attacker)
+
+    if (!attacker.isActive || attacker.currentHealth <= 0) {
       onComplete({
         updatedAttacker: attacker,
         updatedTargets: [],
@@ -55,10 +55,14 @@ export class BattleActionService {
         ? this.selectTarget(healingTargets)
         : null;
     } else {
+      console.log("_________________________________________")
+      console.log('attacker', attacker)
+      console.log('validTargets', validTargets)
       target = this.selectTarget(validTargets.filter(t => t.isEnemy !== attacker.isEnemy));
+      console.log('target', target)
+      console.log("_________________________________________")
     }
 
-    console.log(target)
     if (!target) {
       logs.push(`${attacker.name} не знайшов цілей!`);
       // TODO add moving
@@ -102,8 +106,6 @@ export class BattleActionService {
   private selectTarget(targets: IBattleCharacter[]): IBattleCharacter | null {
     if (!targets?.length) return null;
 
-    console.log('selectTarget', targets.reduce((prev, current) =>
-      (current.currentHealth < prev.currentHealth) ? current : prev));
     return targets.reduce((prev, current) =>
       (current.currentHealth < prev.currentHealth) ? current : prev
     );
@@ -114,8 +116,6 @@ export class BattleActionService {
     targets: IBattleCharacter[]
   ): { updatedTargets: IBattleCharacter[]; damageAmount: number } {
     const target = this.targetSelector.selectTarget(attacker, targets);
-    console.log('target', target)
-    console.log('target.currentHealth', target?.currentHealth)
 
     if (!target) return { updatedTargets: targets, damageAmount: 0 };
 
@@ -158,7 +158,7 @@ export class BattleActionService {
         ...t,
         currentHealth: newHealth,
         activeActionStatus: {
-          ...t.activeActionStatus, // Зберігаємо інші статуси
+          ...t.activeActionStatus,
           isTakingDamage: true,
           isCriticalDamaged
         }
@@ -167,8 +167,6 @@ export class BattleActionService {
 
     this.logger.addLog(`${attacker.name} атакує ${target.name} (${totalDamage} шкоди)`);
     if (isCriticalDamaged) this.logger.addLog('⚡ Критичний удар!');
-    console.log('target.currentHealth', target.currentHealth)
-
 
     return { updatedTargets, damageAmount: totalDamage };
   }
@@ -212,7 +210,6 @@ export class BattleActionService {
 
     this.logger.addLog(`💚 ${healer.name} лікує ${target.name} на ${healAmount} HP`);
 
-    console.log('end of performHeal')
     return {
       updatedTargets: targets.map(t => t.id === target.id ? updatedTarget : t),
       healAmount: healAmount,
