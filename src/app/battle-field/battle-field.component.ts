@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy} from '@angular/core';
 import { Store } from '@ngrx/store';
 import {BattleEngineService, BattleState} from '../shared/battle-services/battle-engine/battle-engine.service';
 import {
@@ -11,12 +11,26 @@ import {
   selectBattleStateBackground
 } from '../store/battle-store/battle-store.selectors';
 import { BattleStoreActions } from '../store/battle-store/battle-store.actions';
-import {takeUntil, filter, tap, first} from 'rxjs/operators';
-import {Observable, Subject} from 'rxjs';
+import {
+  takeUntil,
+  filter,
+  tap,
+  first,
+  distinctUntilChanged,
+  throttle,
+  switchMap,
+  skip,
+  share,
+  publish
+} from 'rxjs/operators';
+import {concat, defer, Observable, of, Subject, take, throttleTime} from 'rxjs';
 import {AsyncPipe, NgStyle} from '@angular/common';
 import {CharacterEffectsComponent} from '../shared/character-effects/character-effects.component';
 import {selectRecruited} from '../store/recruted-adventures/recruited-adventures.selector';
 import {EEnemyTypes, enemyPowerSettings} from './dattle-field.model';
+import {
+  BattleStateService
+} from '../shared/battle-services/battle-engine/battle-engine-support-services/battle-state.service';
 
 @Component({
   selector: 'app-battle-field',
@@ -36,7 +50,9 @@ export class BattleFieldComponent implements OnDestroy {
 
   constructor(
     private store: Store,
-    public battleEngine: BattleEngineService
+    public battleEngine: BattleEngineService,
+    private stateService: BattleStateService,
+    private cdr: ChangeDetectorRef
   ) {
     let enemyType: EEnemyTypes | null;
     this.battleState$ = this.store.select(selectBattleState).pipe(filter(data => !!data));
@@ -44,13 +60,23 @@ export class BattleFieldComponent implements OnDestroy {
     this.store.select(selectBattleEnemyType).pipe(filter(type => !!type), first()).subscribe(type => enemyType = type);
 
     // Sync engine state with store
-    this.battleEngine.stateChanged
+    this.stateService.state$
       .pipe(
+        filter(res => !!res),
+        distinctUntilChanged(),
         takeUntil(this.destroy$),
-        tap(state => {
-          this.store.dispatch(BattleStoreActions.updateBattleState({ state }));
-        })
-      ).subscribe();
+        share(),
+      )
+      .pipe(
+        publish(shared$ => concat(
+          shared$.pipe(take(1)),
+          shared$.pipe(skip(1), throttleTime(1000))
+        ))
+      )
+      .subscribe(state => {
+        this.store.dispatch(BattleStoreActions.updateBattleState({ state }));
+      });
+
     this.recruitedAdventures$ = this.store.select(selectRecruited);
 
 
@@ -65,10 +91,16 @@ export class BattleFieldComponent implements OnDestroy {
       ).subscribe();
   }
 
+
+
   handleEffectComplete(effectProperty: keyof IActiveActionStatus, character: IBattleCharacter) {
-    if (this.battleEngine.isInitialized) {
-      this.battleEngine.updateCharacterEffectState(character.id, effectProperty, false);
-    }
+    this.stateService.isInitialized$.pipe(
+      takeUntil(this.destroy$),
+      filter(initialized => initialized),
+      first()
+    ).subscribe(() => {
+      this.stateService.updateCharacterEffectState(character.id, effectProperty, false);
+    });
   }
 
   ngOnDestroy() {

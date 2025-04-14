@@ -1,8 +1,9 @@
+1
 <div class="arena-container">
   @if (battleState$ | async; as battleState) {
-    <div class="battle-field__wrapper">
+2    <div class="battle-field__wrapper">
       @if (battleState?.isBattleInProgress) {
-        <div class="battle-field"
+        4<div class="battle-field"
              [ngStyle]="{ 'background': 'url(' + (backgroundImg$ | async) + ') no-repeat center/cover' }">
           @if ((battleState$ | async)?.battleRows; as rows) {
             @for (battleRow of rows; track battleRow.rowNumber) {
@@ -93,7 +94,7 @@
       </div>
     </div>
   } @else {
-    <div class="loading-state">
+ 3   <div class="loading-state">
       <div class="spinner"></div>
       <p>Loading battle configuration...</p>
     </div>

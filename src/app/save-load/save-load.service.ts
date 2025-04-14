@@ -113,6 +113,7 @@ export class SaveLoadService {
         created: new Date().toISOString(),
         data: gameState
       })], { type: 'application/json' });
+      console.log(`game-save-${this.currentVersion}.save`)
 
       saveAs(blob, `game-save-${this.currentVersion}.save`);
     } catch (error) {

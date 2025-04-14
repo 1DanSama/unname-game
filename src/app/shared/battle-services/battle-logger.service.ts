@@ -4,8 +4,12 @@ import { Injectable } from '@angular/core';
 export class BattleLoggerService {
   private logs: string[] = [];
 
-  addLog(message: string): void {
-    this.logs.push(message);
+  addLog(messages: string | string[]): void {
+    if (Array.isArray(messages)) {
+      this.logs.push(...messages);
+    } else {
+      this.logs.push(messages);
+    }
   }
 
   getLogs(): string[] {

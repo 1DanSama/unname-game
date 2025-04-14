@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import {ITargetSelectionStrategy} from './target-selection.interface';
-import {WarriorTargetStrategy} from './warrior-target.service';
-import {RogueTargetStrategy} from './rogue-target.service';
 import {
   IBattleCharacter
 } from '../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
+import {ITargetSelectionStrategy} from './target-select-services/target-selection.interface';
+import {WarriorTargetStrategy} from './target-select-services/target-strategys/warrior-target.service';
+import {RogueTargetStrategy} from './target-select-services/target-strategys/rogue-target.service';
 
 @Injectable({ providedIn: 'root' })
 export class BattlePriorityService {
