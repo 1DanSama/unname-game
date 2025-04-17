@@ -14,6 +14,7 @@
                     <div class="combatants-grid">
                       @for (ally of battleRow.allies; track ally.id) {
                         <app-character-effects
+                          [style.--animation-delay]="animationDelay + 'ms'"
                           [class]="'ally'"
                           [character]="ally"
                           [isActiveTurn]="battleState.currentTurnIndex < (battleState.participants.length || 0)
@@ -32,6 +33,7 @@
                     <div class="combatants-grid">
                       @for (enemy of battleRow.enemies; track enemy.id) {
                         <app-character-effects
+                          [style.--animation-delay]="animationDelay + 'ms'"
                           [class]="'enemy'"
                           [character]="enemy"
                           [isActiveTurn]="battleState.currentTurnIndex < (battleState.participants.length || 0)

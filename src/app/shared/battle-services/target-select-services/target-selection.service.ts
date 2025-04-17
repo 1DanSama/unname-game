@@ -25,16 +25,13 @@ export class TargetSelectionService {
   selectTarget(attacker: IBattleCharacter, targets: IBattleCharacter[]): IBattleCharacter {
     const strategy = this.strategies.get(attacker.className) || this.warriorStrategy;
 
-    return strategy.selectTarget(targets.filter(t => t.isActive || t.currentHealth > 0));
+    return strategy.selectTarget(targets.filter(t => t.currentHealth > 0));
   }
 
   public getValidTargets(
     attacker: IBattleCharacter,
     allies: IBattleCharacter[],
     enemies: IBattleCharacter[]): IBattleCharacter[] {
-    // if (!attacker.isEnemy) {
-    //   console.log('11111111111111111111111')
-    // }
 
     let targets = this.getValidTargets2(
       attacker,
@@ -44,7 +41,7 @@ export class TargetSelectionService {
 
     if (attacker.className === CharacterClass.Healer) {
       const needsSelfHeal = attacker.currentHealth <= (attacker.maxHealthPoints * 0.8);
-      const validSelfTarget = attacker.isActive && attacker.currentHealth > 0;
+      const validSelfTarget = attacker.currentHealth > 0;
 
       if (targets.length === 0 && validSelfTarget && needsSelfHeal) {
         targets = [attacker];
@@ -52,14 +49,9 @@ export class TargetSelectionService {
     }
 
     targets = targets.filter(t =>
-      (t.isActive ||
-      t.currentHealth > 0) &&
+      (t.currentHealth > 0) &&
       this.isInAttackRange(attacker, t)
     );
-
-    if (!attacker.isEnemy) {
-      console.log('!isEnemy targets', targets)
-    }
 
     if (targets.length === 0) {
       return [];
@@ -80,10 +72,7 @@ export class TargetSelectionService {
       ? ownTeam
       : opposingTeam;
 
-    if (!attacker.isEnemy) {
-      console.log('availableTargets', availableTargets)
-    }
-    const activeTargets = availableTargets.filter(t => (t?.isActive || t?.currentHealth > 0) && this.isInAttackRange(attacker, t));
+    const activeTargets = availableTargets.filter(t => (t?.currentHealth > 0) && this.isInAttackRange(attacker, t));
 
     if (attacker.className === CharacterClass.Healer) {
       return this.getHealerTargets(attacker, activeTargets);

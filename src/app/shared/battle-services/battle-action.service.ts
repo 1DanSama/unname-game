@@ -7,6 +7,7 @@ import {
 } from '../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {CharacterClass} from '../../store/recruted-adventures/recruted-abventures.model';
 import {TargetSelectionService} from './target-select-services/target-selection.service';
+import {BattleStateService} from './battle-engine/battle-engine-support-services/battle-state.service';
 
 export interface IPerformAutoActionResult {
   updatedAttacker: IBattleCharacter;
@@ -16,15 +17,17 @@ export interface IPerformAutoActionResult {
   healAmount?: number;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class BattleActionService {
   private readonly HEAL_DIVIDER = 1;
 
   constructor(
     private damageCalculator: DamageCalculationService,
     private targetSelector: TargetSelectionService,
-    private logger: BattleLoggerService
-  ) {}
+    private logger: BattleLoggerService,
+    private stateService: BattleStateService
+  ) {
+  }
 
   performAutoAction(
     attacker: IBattleCharacter,
@@ -33,11 +36,9 @@ export class BattleActionService {
   ) {
     let target: IBattleCharacter | null = null;
     const logs: string[] = [];
-    const updatedTargets: IBattleCharacter[] = [];
+    const ANIMATION_DURATION = 400;
 
-    console.log('performAutoAction attacker', attacker)
-
-    if (!attacker.isActive || attacker.currentHealth <= 0) {
+    if (attacker.currentHealth <= 0) {
       onComplete({
         updatedAttacker: attacker,
         updatedTargets: [],
@@ -55,17 +56,11 @@ export class BattleActionService {
         ? this.selectTarget(healingTargets)
         : null;
     } else {
-      console.log("_________________________________________")
-      console.log('attacker', attacker)
-      console.log('validTargets', validTargets)
       target = this.selectTarget(validTargets.filter(t => t.isEnemy !== attacker.isEnemy));
-      console.log('target', target)
-      console.log("_________________________________________")
     }
 
     if (!target) {
       logs.push(`${attacker.name} не знайшов цілей!`);
-      // TODO add moving
       onComplete({
         updatedAttacker: {
           ...attacker,
@@ -80,27 +75,43 @@ export class BattleActionService {
     let result: IBattleCharacter[];
     let damageAmount = 0;
     let healAmount = 0;
+      if (attacker.className === CharacterClass.Healer) {
+        const healResult = this.performHeal(attacker, [target]);
+        result = healResult.updatedTargets;
+        healAmount = healResult.healAmount;
 
-    if (attacker.className === CharacterClass.Healer) {
-      const healResult = this.performHeal(attacker, [target]);
-      result = healResult.updatedTargets;
-      healAmount = healResult.healAmount;
-    } else {
-      const attackResult = this.performAttack(attacker, [target]);
-      result = attackResult.updatedTargets;
-      damageAmount = attackResult.damageAmount;
-    }
+        const targetIsEnemy = target.isEnemy;
 
-    onComplete({
-      updatedAttacker: {
-        ...attacker,
-        isActionCompleted: true
-      },
-      updatedTargets: result,
-      logs,
-      damageAmount,
-      healAmount
-    });
+        this.stateService.updateState(state => ({
+          ...state,
+          [targetIsEnemy ? 'enemies' : 'allies']: state[targetIsEnemy ? 'enemies' : 'allies'].map(c =>
+            c.id === target.id ? {...result[0], hasUpdatedActionStatus: true,} : c
+          )
+        }));
+      } else {
+        const attackResult = this.performAttack(attacker, [target]);
+        result = attackResult.updatedTargets;
+        damageAmount = attackResult.damageAmount;
+
+        const targetIsEnemy = target.isEnemy;
+        this.stateService.updateState(state => ({
+          ...state,
+          [targetIsEnemy ? 'enemies' : 'allies']: state[targetIsEnemy ? 'enemies' : 'allies'].map(c =>
+            c.id === target.id ? {...result[0], hasUpdatedActionStatus: true} : c
+          )
+        }));
+      }
+
+      onComplete({
+        updatedAttacker: {
+          ...attacker,
+          isActionCompleted: true
+        },
+        updatedTargets: result,
+        logs,
+        damageAmount,
+        healAmount
+      });
   }
 
   private selectTarget(targets: IBattleCharacter[]): IBattleCharacter | null {
@@ -122,11 +133,12 @@ export class BattleActionService {
     const baseDamage = this.damageCalculator.calculateBaseDamage(attacker);
     const evasionResult = this.damageCalculator.calculateEvasionChance(attacker, target, baseDamage);
 
-    // Оновлюємо статуси зі збереженням усіх властивостей
+    // Create new objects with spread operator for immutability
     let updatedTargets = targets.map(t => ({
       ...t,
+      hasUpdatedActionStatus: true,
       activeActionStatus: {
-        ...t.activeActionStatus, // Зберігаємо існуючі значення
+        ...t.activeActionStatus,
         isTakingDamage: false,
         isEvaded: false,
         isCriticalDamaged: false
@@ -134,10 +146,11 @@ export class BattleActionService {
     }));
 
     if (evasionResult.isEvaded) {
-      this.logger.addLog(`${target.name} ухилився від атаки!`);
+      this.addToLog(`${target.name} ухилився від атаки!`);
       updatedTargets = updatedTargets.map(t =>
         t.id === target.id ? {
           ...t,
+          hasUpdatedActionStatus: true,
           activeActionStatus: {
             ...t.activeActionStatus,
             isEvaded: true
@@ -157,6 +170,7 @@ export class BattleActionService {
       t.id === target.id ? {
         ...t,
         currentHealth: newHealth,
+        hasUpdatedActionStatus: true,
         activeActionStatus: {
           ...t.activeActionStatus,
           isTakingDamage: true,
@@ -165,8 +179,8 @@ export class BattleActionService {
       } : t
     );
 
-    this.logger.addLog(`${attacker.name} атакує ${target.name} (${totalDamage} шкоди)`);
-    if (isCriticalDamaged) this.logger.addLog('⚡ Критичний удар!');
+    this.addToLog(`${attacker.name} атакує ${target.name} (${totalDamage} шкоди)`);
+    if (isCriticalDamaged) this.addToLog('⚡ Критичний удар!');
 
     return { updatedTargets, damageAmount: totalDamage };
   }
@@ -181,7 +195,7 @@ export class BattleActionService {
     );
 
     if (validTargets.length === 0) {
-      this.logger.addLog(`ℹ️ Немає поранених союзників для лікування`);
+      this.addToLog(`ℹ️ Немає поранених союзників для лікування`);
       return {
         updatedTargets: targets,
         healAmount: 0
@@ -202,17 +216,28 @@ export class BattleActionService {
     const updatedTarget = {
       ...target,
       currentHealth: Math.min(target.currentHealth + healAmount, target.maxHealthPoints),
+      hasUpdatedActionStatus: true,
       activeActionStatus: {
         ...target.activeActionStatus,
         isHeal: true
       }
     };
 
-    this.logger.addLog(`💚 ${healer.name} лікує ${target.name} на ${healAmount} HP`);
+    this.addToLog(`💚 ${healer.name} лікує ${target.name} на ${healAmount} HP`);
 
     return {
       updatedTargets: targets.map(t => t.id === target.id ? updatedTarget : t),
       healAmount: healAmount,
     };
+  }
+
+
+  private addToLog(messages: string | string[]) {
+    const newMessages = Array.isArray(messages) ? messages : [messages];
+
+    this.stateService.updateState(state => ({
+      ...state,
+      battleLog: [...newMessages, ...state.battleLog]
+    }));
   }
 }

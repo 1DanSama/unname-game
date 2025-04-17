@@ -1,5 +1,13 @@
 import {Injectable, OnDestroy} from '@angular/core';
-import {BehaviorSubject, delay, delayWhen, EMPTY, from, Observable, Subject, throttleTime, timer} from 'rxjs';
+import {
+  BehaviorSubject, concatWith,
+  EMPTY,
+  from,
+  ignoreElements,
+  Observable,
+  Subject,
+  timer
+} from 'rxjs';
 import {BattleActionService, IPerformAutoActionResult} from '../battle-action.service';
 import {QuestManagerService} from '../../quest-manager.service';
 import {
@@ -9,8 +17,7 @@ import {
 import {BattleStateService} from './battle-engine-support-services/battle-state.service';
 import {BattleInitializationService} from './battle-engine-support-services/battle-initialization.service';
 import {TargetSelectionService} from '../target-select-services/target-selection.service';
-import {BattleLoggerService} from '../battle-logger.service';
-import {concatMap, finalize, switchMap, take, takeUntil, tap} from 'rxjs/operators';
+import {concatMap, switchMap, take, takeUntil, tap} from 'rxjs/operators';
 import {IEnemyPowerSettings} from '../../../battle-field/dattle-field.model';
 import {CharacterClass} from '../../../store/recruted-adventures/recruted-abventures.model';
 import {BattleCharacterMovingService} from '../battle-character-moving.service';
@@ -36,10 +43,8 @@ interface BattleRow {
 
 @Injectable({ providedIn: 'root' })
 export class BattleEngineService implements OnDestroy {
-  private turnDelay$ = new BehaviorSubject<number>(600);
-  private roundDelay$ = new BehaviorSubject<number>(1000);
-  private turnDelay = 600;
-  private roundDelay = 1000;
+  private turnDelay$ = new BehaviorSubject<number>(801);
+  private roundDelay$ = new BehaviorSubject<number>(0);
 
   private destroy$ = new Subject<void>();
 
@@ -48,25 +53,15 @@ export class BattleEngineService implements OnDestroy {
     private initService: BattleInitializationService,
     private targetService: TargetSelectionService,
     private questManager: QuestManagerService,
-    private logger: BattleLoggerService,
     private actionService: BattleActionService,
     private battleMoving: BattleCharacterMovingService,
   ) {}
 
   initializeBattle(recruited: RecruitedAdventures[], enemyPower: IEnemyPowerSettings) {
 
-    // console.log('initializeBattle')
-
     this.stateService.resetState();
     const initialState = this.initService.createInitialState(recruited, enemyPower);
 
-    console.log('initialState', initialState)
-
-    // console.log('initialState', initialState)
-
-    // console.log('this.createBattleRows(initialState.allies, initialState.enemies)', this.createBattleRows(initialState.allies, initialState.enemies))
-    // console.log('this.getSortedParticipants(initialState.allies, initialState.enemies)', this.getSortedParticipants(initialState.allies, initialState.enemies))
-    console.log('initialState.allies, initialState.enemies', initialState.allies, initialState.enemies)
     this.stateService.updateState(() => ({
       ...initialState,
       battleRows: this.createBattleRows(initialState.allies, initialState.enemies),
@@ -86,7 +81,7 @@ export class BattleEngineService implements OnDestroy {
 
   private getSortedParticipants(allies: IBattleCharacter[], enemies: IBattleCharacter[]): IBattleCharacter[] {
     return [...allies, ...enemies]
-      .filter(p => p.isActive || p?.currentHealth > 0)
+      .filter(p => p?.currentHealth > 0)
       .sort((a, b) => b.initiative - a.initiative);
   }
 
@@ -102,40 +97,37 @@ export class BattleEngineService implements OnDestroy {
   private processBattleTurns() {
     if (!this.stateService.currentState.isBattleInProgress) return;
 
-    this.stateService.state$.pipe(
-      take(1),
-      takeUntil(this.destroy$),
-      switchMap(state => {
-        if (!state.isBattleInProgress || this.checkBattleEnd()) return EMPTY;
+    this.stateService.state$
+      .pipe(
+        take(1),
+        takeUntil(this.destroy$),
+        switchMap(state => {
+          if (!state.isBattleInProgress || this.checkBattleEnd()) {
+            return EMPTY;
+          }
 
-        return from([...state.participants]).pipe(
-          concatMap(participant => {
-              return this.processParticipant(participant)
-            }
-          ),
-
-          concatMap(() => timer(this.roundDelay).pipe(
-            takeUntil(this.destroy$),
-            switchMap(() => EMPTY)
-          )),
-          // Handle round completion after delay
-          finalize(() => {
-            this.handleRoundCompletion();
-            // }
-          })
-        );
-      })
-    ).subscribe();
+          return from(state.participants).pipe(
+            concatMap(participant =>
+              this.processParticipant(participant).pipe(
+                concatWith(timer(this.turnDelay$.value))
+              )
+            ),
+            ignoreElements(),
+            concatWith(timer(this.roundDelay$.value)),
+            tap(() => this.handleRoundCompletion())
+          );
+        })
+      )
+      .subscribe();
   }
 
   private handleRoundCompletion() {
-
     this.stateService.updateState(state => ({
       ...state,
       currentRound: state.currentRound + 1
     }));
 
-    this.logger.addLog(`--- Round ${this.stateService.currentState.currentRound + 1} Starts ---`);
+    this.addToLog(`--- Round ${this.stateService.currentState.currentRound + 1} Starts ---`);
 
     this.updateParticipants();
     this.processBattleTurns();
@@ -168,7 +160,9 @@ export class BattleEngineService implements OnDestroy {
     // console.log('updateParticipants')
     this.stateService.updateState(state => ({
       ...state,
-      participants: this.getSortedParticipants(state.allies, state.enemies)
+      participants: this.getSortedParticipants(state.allies, state.enemies),
+      allies: state.allies,
+      enemies: state.enemies
     }));
   }
 
@@ -185,45 +179,45 @@ export class BattleEngineService implements OnDestroy {
 
     this.actionService.performAutoAction(participant, validTargets, result => {
       this.updateParticipantStates(result);
-      this.logger.addLog(result.logs);
+      this.addToLog(result.logs);
       onComplete();
     });
   }
 
   private updateParticipantStates(result: IPerformAutoActionResult) {
     this.stateService.updateState(state => {
-      const updatedAllies = state.allies.map(a => {
-        // Update the attacker
-        if (a.id === result.updatedAttacker.id) {
-          return { ...a, ...result.updatedAttacker };
-        }
+      const updatedAllies = [...state.allies.map(a => {
+        const updated = result.updatedTargets.find(t => t.id === a.id);
+        return updated ? {
+          ...a,
+          ...updated,
+          hasUpdatedActionStatus: true,
+          activeActionStatus: {...updated.activeActionStatus} // Глибоке клонування
+        } : a;
+      })];
 
-        const updatedTarget = result.updatedTargets.find(t => t.id === a.id);
-        if (!updatedTarget) return a;
+      const updatedEnemies = [...state.enemies.map(e => {
+        const updated = result.updatedTargets.find(t => t.id === e.id);
+        return updated ? {
+          ...e,
+          ...updated,
+          hasUpdatedActionStatus: true,
+          activeActionStatus: {...updated.activeActionStatus} // Глибоке клонування
+        } : e;
+      })];
 
-        return updatedTarget.currentHealth <= 0
-          ? { ...updatedTarget, isActive: false }
-          : { ...a, ...updatedTarget };
-      });
-
-      const updatedEnemies = state.enemies.map(e => {
-        const updatedTarget = result.updatedTargets.find(t => t.id === e.id);
-        if (!updatedTarget) return e;
-
-        return updatedTarget.currentHealth <= 0
-          ? { ...updatedTarget, isActive: false }
-          : { ...e, ...updatedTarget };
-      });
-
+      // Повертаємо новий об'єкт стану
       return {
-        ...state,
-        allies: updatedAllies,
-        enemies: updatedEnemies,
+        ...state, // Новий об'єкт стану
+        allies: updatedAllies, // Нове посилання на allies
+        enemies: updatedEnemies, // Нове посилання на enemies
         participants: this.getSortedParticipants(updatedAllies, updatedEnemies)
       };
     });
 
+
     this.checkBattleEnd();
+    this.updateBattleRows();
   }
 
   private handleNoTargets(attacker: IBattleCharacter) {
@@ -236,7 +230,6 @@ export class BattleEngineService implements OnDestroy {
     } else {
       // Allies move forward (towards higher rows)
       newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
-      console.log('isEnemy newRow', newRow)
 
     }
 
@@ -267,17 +260,18 @@ export class BattleEngineService implements OnDestroy {
       return;
     }
 
+    // Create new character object with movement state
     const updatedChar = {
       ...movementResult.updatedChar,
       previousRow: char.currentRow,
       currentRow: newRow,
-      currentAction: 'move' // Встановлюємо стан анімації
+      currentAction: 'move',
+      activeActionStatus: { ...char.activeActionStatus } // Copy existing statuses
     };
 
-    // Оновлюємо стан
     const updatedArray = char.isEnemy
-      ? enemies.map(c => c.id === char.id ? updatedChar : c)
-      : allies.map(c => c.id === char.id ? updatedChar : c);
+      ? enemies.map(c => c.id === char.id ? updatedChar : {...c})
+      : allies.map(c => c.id === char.id ? updatedChar : {...c});
 
     this.stateService.updateState(state => ({
       ...state,
@@ -286,19 +280,6 @@ export class BattleEngineService implements OnDestroy {
 
     this.addToLog(movementResult.log!);
     this.updateBattleRows();
-
-    // Скидаємо анімацію через 500мс
-    // setTimeout(() => {
-      const clearedChar = {...updatedChar, currentAction: undefined};
-      const clearedArray = char.isEnemy
-        ? enemies.map(c => c.id === char.id ? clearedChar : c)
-        : allies.map(c => c.id === char.id ? clearedChar : c);
-
-      this.stateService.updateState(state => ({
-        ...state,
-        [char.isEnemy ? 'enemies' : 'allies']: clearedArray
-      }));
-    // }, 500);
   }
 
   private updateBattleRows() {

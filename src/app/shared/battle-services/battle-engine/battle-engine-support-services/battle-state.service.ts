@@ -35,12 +35,35 @@ export class BattleStateService {
   get currentState(): BattleState {
     return this.stateStore.value;
   }
+  //
+  // updateState(updater: (state: BattleState) => BattleState) {
+  //   const newState = this.produceNextState(updater);
+  //
+  //   this.stateStore.next(newState);
+  // }
 
+  // updateState(updater: (state: BattleState) => BattleState) {
+  //   const newState = updater({
+  //     ...this.stateStore.value,
+  //     allies: [...this.stateStore.value.allies], // New array reference
+  //     enemies: [...this.stateStore.value.enemies] // New array reference
+  //   });
+  //
+  //   this.stateStore.next({
+  //     ...newState,
+  //     allies: [...newState.allies], // Force new array reference
+  //     enemies: [...newState.enemies] // Force new array reference
+  //   });
+  // }
   updateState(updater: (state: BattleState) => BattleState) {
-    const newState = this.produceNextState(updater);
-
+    const newState = updater({
+      ...this.stateStore.value,
+      allies: [...this.stateStore.value.allies], // New array reference
+      enemies: [...this.stateStore.value.enemies] // New array reference
+    });
     this.stateStore.next(newState);
   }
+
 
   resetState() {
     this.stateStore.next(initialState);

@@ -100,6 +100,7 @@ export interface IBattleCharacter extends RecruitedAdventures {
   isActionCompleted: boolean;
 
   activeActionStatus: IActiveActionStatus;
+  hasUpdatedActionStatus?: boolean;
 }
 
 export interface ICharacterCreator {

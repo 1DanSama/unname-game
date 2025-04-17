@@ -5,7 +5,7 @@
   z-index: 9999;
   pointer-events: none;
   white-space: nowrap;
-  animation: floatUp 0.4s ease-out forwards;
+  animation: floatUp var(--animation-delay) ease-out forwards;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
   isolation: isolate;
   opacity: 1 !important;
@@ -48,7 +48,7 @@
         right: -10%;
         bottom: -10%;
         background: radial-gradient(circle, rgba(241, 196, 15, 0.3) 0%, transparent 70%);
-        animation: activeTurnGlow 1.5s ease-in-out infinite;
+        animation: activeTurnGlow var(--animation-delay) ease-in-out infinite;
         border-radius: 50%;
         z-index: -1;
       }
@@ -57,13 +57,15 @@
 
   // State Modifiers
   &.moving .character-icon {
-    animation: moveBounce 0.4s ease;
+    animation: moveBounce var(--animation-delay) ease;
   }
 
   &.dead {
-    opacity: 0;
-    transition: opacity 0.5s ease;
+    animation-name: deadPulse;
+    animation-duration: 0.4s;
+    animation-fill-mode: forwards;
   }
+
 
   &.action-completed {
     opacity: 1;
@@ -173,14 +175,14 @@
 
   &.crit-strike {
     opacity: 1 !important;
-    animation: critEffect 0.4s ease-out forwards;
+    animation: critEffect var(--animation-delay) ease-out forwards;
     background: radial-gradient(circle, rgba(255, 50, 50) 60%, transparent 70%);
   }
 
   &.evasion {
     opacity: 1 !important;
     //background: radial-gradient(circle, rgba(100, 200, 255) 60%, transparent 70%);
-    animation: evasionPulse 0.6s ease-out forwards;
+    animation: evasionPulse var(--animation-delay) ease-out forwards;
   }
 
   &.healing {
@@ -209,6 +211,17 @@
       background: radial-gradient(circle, rgba(100, 200, 255) 60%, transparent 70%);}
     100% { opacity: 0; transform: translate(0, 0) scale(1); }
   }
+
+@keyframes deadPulse {
+  from {
+    opacity: 1;
+    display: block;
+  }
+  to {
+    opacity: 0;
+    display: none;
+  }
+}
 
 @keyframes atackingPulse {
     0% { opacity: 1; transform: translate(0, 0) scale(1); }
