@@ -43,8 +43,8 @@ interface BattleRow {
 
 @Injectable({ providedIn: 'root' })
 export class BattleEngineService implements OnDestroy {
-  private turnDelay$ = new BehaviorSubject<number>(801);
-  private roundDelay$ = new BehaviorSubject<number>(0);
+  private turnDelay$ = new BehaviorSubject<number>(3000);
+  private roundDelay$ = new BehaviorSubject<number>(5000);
 
   private destroy$ = new Subject<void>();
 
@@ -58,7 +58,6 @@ export class BattleEngineService implements OnDestroy {
   ) {}
 
   initializeBattle(recruited: RecruitedAdventures[], enemyPower: IEnemyPowerSettings) {
-
     this.stateService.resetState();
     const initialState = this.initService.createInitialState(recruited, enemyPower);
 
@@ -122,6 +121,8 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private handleRoundCompletion() {
+    if (!this.stateService.currentState.isBattleInProgress) return
+
     this.stateService.updateState(state => ({
       ...state,
       currentRound: state.currentRound + 1
@@ -136,10 +137,8 @@ export class BattleEngineService implements OnDestroy {
   private processParticipant(participant: IBattleCharacter) {
     if(!participant.isEnemy) {
     }
-    // console.log('processParticipant')
     return new Observable<void>(observer => {
       const currentState = this.stateService.currentState;
-      // console.log('currentState', currentState)
       const isAlive = currentState.participants.some(p =>
         p.id === participant.id && p.currentHealth > 0
       );
@@ -157,7 +156,6 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private updateParticipants() {
-    // console.log('updateParticipants')
     this.stateService.updateState(state => ({
       ...state,
       participants: this.getSortedParticipants(state.allies, state.enemies),
@@ -192,7 +190,7 @@ export class BattleEngineService implements OnDestroy {
           ...a,
           ...updated,
           hasUpdatedActionStatus: true,
-          activeActionStatus: {...updated.activeActionStatus} // Глибоке клонування
+          activeActionStatus: {...updated.activeActionStatus}
         } : a;
       })];
 
@@ -202,15 +200,14 @@ export class BattleEngineService implements OnDestroy {
           ...e,
           ...updated,
           hasUpdatedActionStatus: true,
-          activeActionStatus: {...updated.activeActionStatus} // Глибоке клонування
+          activeActionStatus: {...updated.activeActionStatus}
         } : e;
       })];
 
-      // Повертаємо новий об'єкт стану
       return {
-        ...state, // Новий об'єкт стану
-        allies: updatedAllies, // Нове посилання на allies
-        enemies: updatedEnemies, // Нове посилання на enemies
+        ...state,
+        allies: updatedAllies,
+        enemies: updatedEnemies,
         participants: this.getSortedParticipants(updatedAllies, updatedEnemies)
       };
     });
@@ -225,10 +222,8 @@ export class BattleEngineService implements OnDestroy {
     let newRow: rowPosition;
 
     if (attacker.isEnemy) {
-      // Enemies move backward (towards lower rows)
       newRow = Math.max(1, attacker.currentRow - movement) as rowPosition;
     } else {
-      // Allies move forward (towards higher rows)
       newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
 
     }
@@ -260,7 +255,6 @@ export class BattleEngineService implements OnDestroy {
       return;
     }
 
-    // Create new character object with movement state
     const updatedChar = {
       ...movementResult.updatedChar,
       previousRow: char.currentRow,
@@ -312,16 +306,15 @@ export class BattleEngineService implements OnDestroy {
     const enemiesAlive = enemies.some(e => e.currentHealth > 0);
 
     if (!alliesAlive || !enemiesAlive) {
-      // console.log('allies', allies)
-      // console.log('enemies', enemies)
-      // console.log('Ending battle!');
       if (!enemiesAlive) {
         this.addToLog('You win the battle.');
         this.questManager.updateQuestProgress('arena', 1);
       }
+
       if (!alliesAlive) {
         this.addToLog('You lost the battle');
       }
+
       this.endBattle();
       this.destroy$.next();
       this.destroy$.complete();
@@ -344,6 +337,7 @@ export class BattleEngineService implements OnDestroy {
 
   stopBattle() {
     console.log('stopBattle')
+    // todo realize pause
     this.stateService.updateState(state => ({
       ...state,
       isBattleInProgress: false,

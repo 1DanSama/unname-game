@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, Input, OnDestroy} from '@angular/core';
+import { Component, Input, OnDestroy} from '@angular/core';
 import { Store } from '@ngrx/store';
 import {BattleEngineService, BattleState} from '../shared/battle-services/battle-engine/battle-engine.service';
 import {
@@ -15,12 +15,9 @@ import {
   takeUntil,
   filter,
   tap,
-  first,
-  share,
-  publish,
-  distinctUntilChanged
+  first
 } from 'rxjs/operators';
-import {concat, defer, Observable, of, Subject, take, throttleTime} from 'rxjs';
+import { Observable, Subject} from 'rxjs';
 import {AsyncPipe, NgStyle} from '@angular/common';
 import {CharacterEffectsComponent} from '../shared/character-effects/character-effects.component';
 import {selectRecruited} from '../store/recruted-adventures/recruited-adventures.selector';
@@ -51,23 +48,17 @@ export class BattleFieldComponent implements OnDestroy {
     private store: Store,
     public battleEngine: BattleEngineService,
     private stateService: BattleStateService,
-    private cdr: ChangeDetectorRef
   ) {
     let enemyType: EEnemyTypes | null;
     this.battleState$ = this.store.select(selectBattleState).pipe(filter(data => !!data));
     this.backgroundImg$ = this.store.select(selectBattleStateBackground).pipe(filter(img => !!img));
     this.store.select(selectBattleEnemyType).pipe(filter(type => !!type), first()).subscribe(type => enemyType = type);
 
-    // Sync engine state with store
     this.stateService.state$
       .pipe(
         takeUntil(this.destroy$),
-        // distinctUntilChanged((prev, curr) =>
-        //   JSON.stringify(prev) === JSON.stringify(curr)
-        // ),
       )
       .subscribe(state => {
-        // console.log('state', state)
         this.store.dispatch(BattleStoreActions.updateBattleState({state}));
       });
 
@@ -85,8 +76,6 @@ export class BattleFieldComponent implements OnDestroy {
       ).subscribe();
   }
 
-
-
   handleEffectComplete(effectProperty: keyof IActiveActionStatus, character: IBattleCharacter) {
     this.stateService.isInitialized$.pipe(
       takeUntil(this.destroy$),
@@ -103,28 +92,4 @@ export class BattleFieldComponent implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-  // private deepCompare(obj1: any, obj2: any): boolean {
-  //   if (obj1 === obj2) return true;
-  //
-  //   if (typeof obj1 !== typeof obj2) return false;
-  //
-  //   if (obj1 === null || obj2 === null) return false;
-  //
-  //   if (typeof obj1 !== 'object') return obj1 === obj2;
-  //
-  //   if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
-  //
-  //   const keys1 = Object.keys(obj1);
-  //   const keys2 = Object.keys(obj2);
-  //
-  //   if (keys1.length !== keys2.length) return false;
-  //
-  //   for (const key of keys1) {
-  //     if (!keys2.includes(key)) return false;
-  //     if (!this.deepCompare(obj1[key], obj2[key])) return false;
-  //   }
-  //
-  //   return true;
-  // }
 }

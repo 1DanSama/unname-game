@@ -16,12 +16,10 @@ export class BattleCharacterMovingService {
     healerMaxRow: number,
     attackRange: number
   ): { canMove: boolean; updatedChar?: IBattleCharacter; log?: string } {
-    // Check healer movement restrictions
     if (char.className === CharacterClass.Healer && newRow > healerMaxRow) {
       return { canMove: false };
     }
 
-    // Check frontline distance for healers
     if (char.className === CharacterClass.Healer && otherAllies.length > 0) {
       const farthestAllyRow = Math.max(...otherAllies.map(a => a.currentRow));
       const distanceToFrontline = farthestAllyRow - char.currentRow;
@@ -34,7 +32,6 @@ export class BattleCharacterMovingService {
       }
     }
 
-    // Create updated character
     const updatedChar: IBattleCharacter = {
       ...char,
       previousRow: char.currentRow,

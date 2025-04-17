@@ -28,33 +28,10 @@ export class BattleStateService {
   private isInitialized = new BehaviorSubject<boolean>(false);
   isInitialized$ = this.isInitialized.asObservable();
 
-  setInitialized(value: boolean) {
-    this.isInitialized.next(value);
-  }
-
   get currentState(): BattleState {
     return this.stateStore.value;
   }
-  //
-  // updateState(updater: (state: BattleState) => BattleState) {
-  //   const newState = this.produceNextState(updater);
-  //
-  //   this.stateStore.next(newState);
-  // }
 
-  // updateState(updater: (state: BattleState) => BattleState) {
-  //   const newState = updater({
-  //     ...this.stateStore.value,
-  //     allies: [...this.stateStore.value.allies], // New array reference
-  //     enemies: [...this.stateStore.value.enemies] // New array reference
-  //   });
-  //
-  //   this.stateStore.next({
-  //     ...newState,
-  //     allies: [...newState.allies], // Force new array reference
-  //     enemies: [...newState.enemies] // Force new array reference
-  //   });
-  // }
   updateState(updater: (state: BattleState) => BattleState) {
     const newState = updater({
       ...this.stateStore.value,
@@ -67,16 +44,6 @@ export class BattleStateService {
 
   resetState() {
     this.stateStore.next(initialState);
-  }
-
-  private produceNextState(updater: (state: BattleState) => BattleState): BattleState {
-    const current = this.stateStore.value;
-
-    const draft = structuredClone(current);
-
-    const newState = updater(draft);
-
-    return newState;
   }
 
   updateCharacterEffectState(

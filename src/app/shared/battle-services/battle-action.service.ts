@@ -24,7 +24,6 @@ export class BattleActionService {
   constructor(
     private damageCalculator: DamageCalculationService,
     private targetSelector: TargetSelectionService,
-    private logger: BattleLoggerService,
     private stateService: BattleStateService
   ) {
   }
@@ -79,27 +78,10 @@ export class BattleActionService {
         const healResult = this.performHeal(attacker, [target]);
         result = healResult.updatedTargets;
         healAmount = healResult.healAmount;
-
-        const targetIsEnemy = target.isEnemy;
-
-        this.stateService.updateState(state => ({
-          ...state,
-          [targetIsEnemy ? 'enemies' : 'allies']: state[targetIsEnemy ? 'enemies' : 'allies'].map(c =>
-            c.id === target.id ? {...result[0], hasUpdatedActionStatus: true,} : c
-          )
-        }));
       } else {
         const attackResult = this.performAttack(attacker, [target]);
         result = attackResult.updatedTargets;
         damageAmount = attackResult.damageAmount;
-
-        const targetIsEnemy = target.isEnemy;
-        this.stateService.updateState(state => ({
-          ...state,
-          [targetIsEnemy ? 'enemies' : 'allies']: state[targetIsEnemy ? 'enemies' : 'allies'].map(c =>
-            c.id === target.id ? {...result[0], hasUpdatedActionStatus: true} : c
-          )
-        }));
       }
 
       onComplete({
@@ -179,7 +161,7 @@ export class BattleActionService {
       } : t
     );
 
-    this.addToLog(`${attacker.name} атакує ${target.name} (${totalDamage} шкоди)`);
+    this.addToLog(` ⚔️ ${attacker.name} атакує ${target.name} (${totalDamage} шкоди)`);
     if (isCriticalDamaged) this.addToLog('⚡ Критичний удар!');
 
     return { updatedTargets, damageAmount: totalDamage };

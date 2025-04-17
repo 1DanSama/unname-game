@@ -32,7 +32,7 @@ export class ArenaComponent implements OnDestroy {
   }
 
   startBattle() {
-    this.store.dispatch(BattleStoreActions.startBattle({backgroundImg: 'assets/BattleFields/arena-2.png', enemyType: EEnemyTypes.goblins}));
+    this.store.dispatch(BattleStoreActions.startBattle({backgroundImg: 'assets/BattleFields/arena-2.png', enemyType: EEnemyTypes.peoples}));
     this.router.navigate(['/battle-field']);
   }
 

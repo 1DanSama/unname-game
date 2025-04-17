@@ -19,12 +19,13 @@ export type TEnemyPowerSettings = {
 
 
 export const enemyPowerSettings: TEnemyPowerSettings = {
+  // TODO return as was
   peoples: {
-    enemyPowerMultiplier: 1.5,
+    enemyPowerMultiplier: 1,
     enemyLevelMultiplier: 1,
     averageLevel: 1,
-    enemyPartySizeMultiplier: 1.3,
-    enemyPartySize: 2,
+    enemyPartySizeMultiplier: 1,
+    enemyPartySize: 1,
   },
   goblins: {
     enemyPowerMultiplier: 0.6,

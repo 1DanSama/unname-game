@@ -67,6 +67,7 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
 
   constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone, private stateService: BattleStateService
   ) {}
+
   ngOnInit() {
     this.character$
       .pipe(
@@ -76,16 +77,31 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
       .subscribe(curr => {
         this.counter += 1;
 
-        this.stateService.updateState(state => ({
-          ...state,
-          [curr.isEnemy ? 'enemies' : 'allies']: state[curr.isEnemy ? 'enemies' : 'allies'].map(character =>
-            character.id === curr.id
-              ? { ...character, hasUpdatedActionStatus: false }
-              : character
-          )
-        }));
-          this.cdr.detectChanges()
+        const hasAnyTrue = Object.values(curr.activeActionStatus).some((status: boolean) => status);
+
+        if (hasAnyTrue) {
+          // TODO create export initActionStatus obj and reuse it
+          const updatedActionStatus: IActiveActionStatus = {
+            isTakingDamage: false,
+            isHeal: false,
+            isDead: false,
+            isEvaded: false,
+            isCriticalDamaged: false,
+          };
+
+          this.stateService.updateState(state => ({
+            ...state,
+            [curr.isEnemy ? 'enemies' : 'allies']: state[curr.isEnemy ? 'enemies' : 'allies'].map(character =>
+              character.id === curr.id
+                ? { ...character, activeActionStatus: updatedActionStatus, hasUpdatedActionStatus: false }
+                : character
+            ),
+          }));
+
+          this.cdr.detectChanges();
+        }
       });
+
   }
 
   private healthChange$ = this.character$.pipe(
@@ -128,29 +144,5 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private deepCompare(obj1: any, obj2: any): boolean {
-    if (obj1 === obj2) return true;
-
-    if (typeof obj1 !== typeof obj2) return false;
-
-    if (obj1 === null || obj2 === null) return false;
-
-    if (typeof obj1 !== 'object') return obj1 === obj2;
-
-    if (Array.isArray(obj1) !== Array.isArray(obj2)) return false;
-
-    const keys1 = Object.keys(obj1);
-    const keys2 = Object.keys(obj2);
-
-    if (keys1.length !== keys2.length) return false;
-
-    for (const key of keys1) {
-      if (!keys2.includes(key)) return false;
-      if (!this.deepCompare(obj1[key], obj2[key])) return false;
-    }
-
-    return true;
   }
 }
