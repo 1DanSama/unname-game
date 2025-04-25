@@ -54,7 +54,7 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
     this.isActiveTurnSubject.next(isActiveTurn);
   }
 
-  @Output() effectCompleted = new EventEmitter<keyof IActiveActionStatus>();
+  @Output() effectCompleted = new EventEmitter<Partial<IActiveActionStatus>>();
 
   character$ = this.characterSubject.asObservable();
 
@@ -89,14 +89,14 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
             isCriticalDamaged: false,
           };
 
-          this.stateService.updateState(state => ({
-            ...state,
-            [curr.isEnemy ? 'enemies' : 'allies']: state[curr.isEnemy ? 'enemies' : 'allies'].map(character =>
-              character.id === curr.id
-                ? { ...character, activeActionStatus: updatedActionStatus, hasUpdatedActionStatus: false }
-                : character
-            ),
-          }));
+          const key = curr.isEnemy ? 'enemies' : 'allies';
+          const updatedValue = this.stateService.currentState[key].map(character =>
+            character.id === curr.id
+              ? { ...character, activeActionStatus: updatedActionStatus, hasUpdatedActionStatus: false }
+              : character
+          );
+
+          this.stateService.updateStateByKey([{key, value: updatedValue}]);
 
           this.cdr.detectChanges();
         }

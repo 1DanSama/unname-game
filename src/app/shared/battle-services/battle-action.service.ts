@@ -30,20 +30,18 @@ export class BattleActionService {
 
   performAutoAction(
     attacker: IBattleCharacter,
-    validTargets: IBattleCharacter[],
-    onComplete: (result: IPerformAutoActionResult) => void
-  ) {
+    validTargets: IBattleCharacter[]
+  ): IPerformAutoActionResult {
     let target: IBattleCharacter | null = null;
     const logs: string[] = [];
     const ANIMATION_DURATION = 400;
 
     if (attacker.currentHealth <= 0) {
-      onComplete({
+      return {
         updatedAttacker: attacker,
         updatedTargets: [],
         logs: [`${attacker.name} is inactive!`]
-      });
-      return;
+      };
     }
 
     if (attacker.className === CharacterClass.Healer) {
@@ -60,15 +58,14 @@ export class BattleActionService {
 
     if (!target) {
       logs.push(`${attacker.name} не знайшов цілей!`);
-      onComplete({
+      return {
         updatedAttacker: {
           ...attacker,
           isActionCompleted: true
         },
         updatedTargets: [],
         logs
-      });
-      return;
+      };
     }
 
     let result: IBattleCharacter[];
@@ -84,16 +81,16 @@ export class BattleActionService {
         damageAmount = attackResult.damageAmount;
       }
 
-      onComplete({
-        updatedAttacker: {
-          ...attacker,
-          isActionCompleted: true
-        },
-        updatedTargets: result,
-        logs,
-        damageAmount,
-        healAmount
-      });
+    return {
+      updatedAttacker: {
+        ...attacker,
+        isActionCompleted: true
+      },
+      updatedTargets: result,
+      logs,
+      damageAmount,
+      healAmount
+    };
   }
 
   private selectTarget(targets: IBattleCharacter[]): IBattleCharacter | null {
@@ -213,13 +210,8 @@ export class BattleActionService {
     };
   }
 
-
   private addToLog(messages: string | string[]) {
     const newMessages = Array.isArray(messages) ? messages : [messages];
-
-    this.stateService.updateState(state => ({
-      ...state,
-      battleLog: [...newMessages, ...state.battleLog]
-    }));
+    this.stateService.updateStateByKey([{key:'battleLog', value:[...newMessages, ...this.stateService.currentState.battleLog]}])
   }
 }

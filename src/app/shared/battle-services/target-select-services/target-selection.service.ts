@@ -32,6 +32,7 @@ export class TargetSelectionService {
     attacker: IBattleCharacter,
     allies: IBattleCharacter[],
     enemies: IBattleCharacter[]): IBattleCharacter[] {
+    // todo fix droping
 
     let targets = this.getValidTargets2(
       attacker,
@@ -68,11 +69,15 @@ export class TargetSelectionService {
     const ownTeam = attacker.isEnemy ? enemies : allies;
     const opposingTeam = attacker.isEnemy ? allies : enemies;
 
+
     const availableTargets = attacker.className === CharacterClass.Healer
       ? ownTeam
       : opposingTeam;
 
-    const activeTargets = availableTargets.filter(t => (t?.currentHealth > 0) && this.isInAttackRange(attacker, t));
+    const activeTargets = availableTargets.filter(t => {
+
+     return (t?.currentHealth > 0) && this.isInAttackRange(attacker, t)
+    });
 
     if (attacker.className === CharacterClass.Healer) {
       return this.getHealerTargets(attacker, activeTargets);

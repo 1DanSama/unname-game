@@ -1,6 +1,5 @@
 import { Component, Input, OnDestroy} from '@angular/core';
 import { Store } from '@ngrx/store';
-import {BattleEngineService, BattleState} from '../shared/battle-services/battle-engine/battle-engine.service';
 import {
   IActiveActionStatus,
   IBattleCharacter, RecruitedAdventures,
@@ -18,13 +17,16 @@ import {
   first
 } from 'rxjs/operators';
 import { Observable, Subject} from 'rxjs';
-import {AsyncPipe, NgStyle} from '@angular/common';
+import {AsyncPipe, JsonPipe, NgStyle} from '@angular/common';
 import {CharacterEffectsComponent} from '../shared/character-effects/character-effects.component';
 import {selectRecruited} from '../store/recruted-adventures/recruited-adventures.selector';
 import {EEnemyTypes, enemyPowerSettings} from './dattle-field.model';
 import {
+  BattleState,
   BattleStateService
 } from '../shared/battle-services/battle-engine/battle-engine-support-services/battle-state.service';
+import {FasadEngineService} from '../shared/battle-services/battle-engine/fasad-engine.service';
+import {BattleEngineService} from '../shared/battle-services/battle-engine/battle-engine.service';
 
 @Component({
   selector: 'app-battle-field',
@@ -32,7 +34,7 @@ import {
   imports: [
     AsyncPipe,
     CharacterEffectsComponent,
-    NgStyle
+    NgStyle,
   ],
   styleUrls: ['./battle-field.component.scss']
 })
@@ -46,8 +48,8 @@ export class BattleFieldComponent implements OnDestroy {
 
   constructor(
     private store: Store,
-    public battleEngine: BattleEngineService,
     private stateService: BattleStateService,
+    private fasadEngine: FasadEngineService,
   ) {
     let enemyType: EEnemyTypes | null;
     this.battleState$ = this.store.select(selectBattleState).pipe(filter(data => !!data));
@@ -70,25 +72,19 @@ export class BattleFieldComponent implements OnDestroy {
         takeUntil(this.destroy$),
         filter(chars => chars && chars.length > 0),
         tap(chars => {
-          this.battleEngine.initializeBattle(chars, enemyPowerSettings[enemyType || 'peoples']);
-          this.battleEngine.startBattle();
+          this.fasadEngine.initializeBattle(chars, enemyPowerSettings[enemyType || 'peoples']);
+          this.fasadEngine.startBattle();
         })
       ).subscribe();
   }
 
-  handleEffectComplete(effectProperty: keyof IActiveActionStatus, character: IBattleCharacter) {
-    this.stateService.isInitialized$.pipe(
-      takeUntil(this.destroy$),
-      filter(initialized => initialized),
-      first()
-    ).subscribe(() => {
-      this.stateService.updateCharacterEffectState(character.id, effectProperty, false);
-    });
+  handleEffectComplete(effectProperty:  Partial<IActiveActionStatus>, character: IBattleCharacter) {
+    this.stateService.updateCharacterEffectState(character.id, effectProperty, character.isEnemy? 'enemies': 'allies');
   }
 
   ngOnDestroy() {
     this.store.dispatch(BattleStoreActions.endBattle());
-    this.battleEngine.stopBattle();
+    this.fasadEngine.stopBattle();
     this.destroy$.next();
     this.destroy$.complete();
   }

@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
-import {BattleState} from '../battle-engine.service';
 import {
-  IBattleCharacter
+  IBattleCharacter, rowPosition
 } from '../../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {PositionStrategyFactory} from './position-strategies.service';
 import {EnemyInitService} from '../../enemy-init.service';
 import {IEnemyPowerSettings} from '../../../../battle-field/dattle-field.model';
 import {PartyPowerCalculatorService} from '../../../party-power-calculator.service';
+import {BattleState} from './battle-state.service';
 
 @Injectable({ providedIn: 'root' })
 export class BattleInitializationService {
   private baseState: Omit<BattleState, 'allies' | 'enemies' | 'participants' | 'battleRows'> = {
     battleLog: [],
-    isBattleInProgress: false,
+    isBattleInProgress: true,
     currentRound: 1,
     currentTurnIndex: 0,
     damageNumbers: [],
@@ -79,7 +79,7 @@ export class BattleInitializationService {
 
   private createBattleRows(allies: IBattleCharacter[], enemies: IBattleCharacter[]) {
     return [1, 2, 3, 4, 5, 6].map(row => ({
-      rowNumber: row,
+      row: row as rowPosition,
       allies: allies.filter(a => a.currentRow === row),
       enemies: enemies.filter(e => e.currentRow === row)
     }));

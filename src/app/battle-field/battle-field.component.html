@@ -5,8 +5,8 @@
         <div class="battle-field"
              [ngStyle]="{ 'background': 'url(' + (backgroundImg$ | async) + ') no-repeat center/cover' }">
           @if ((battleState$ | async)?.battleRows; as rows) {
-            @for (battleRow of rows; track battleRow.rowNumber) {
-              <div class="battle-row" [attr.data-row]="battleRow.rowNumber">
+            @for (battleRow of rows; track battleRow.row) {
+              <div class="battle-row" [attr.data-row]="battleRow.row">
                 <!-- Allies Section -->
                 @if (battleRow.allies && battleRow.allies.length > 0) {
 

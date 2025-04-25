@@ -1,11 +1,25 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
-import {BattleState} from '../battle-engine.service';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { concatMap } from 'rxjs/operators';
 import {
-  IActiveActionStatus,
+  BattleRow, IActiveActionStatus,
   IBattleCharacter
 } from '../../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 
+export interface BattleState {
+  allies: IBattleCharacter[];
+  enemies: IBattleCharacter[];
+  participants: IBattleCharacter[];
+  battleRows: BattleRow[];
+  battleLog: string[];
+  isBattleInProgress: boolean;
+  currentRound: number;
+  currentTurnIndex: number;
+  damageNumbers: { id: string; value: number; x: number; y: number }[];
+  healNumbers: { id: string; value: number; x: number; y: number }[];
+}
+
+// Початковий стан битви
 const initialState: BattleState = {
   allies: [],
   enemies: [],
@@ -19,52 +33,83 @@ const initialState: BattleState = {
   healNumbers: []
 };
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class BattleStateService {
   private stateStore = new BehaviorSubject<BattleState>(initialState);
 
+  private updateQueue$ = new Subject<(state: BattleState) => BattleState>();
+
   public state$ = this.stateStore.asObservable();
 
-  private isInitialized = new BehaviorSubject<boolean>(false);
-  isInitialized$ = this.isInitialized.asObservable();
+  constructor() {
+    this.updateQueue$
+      .pipe(
+        concatMap(updater => {
+          const currentState = this.stateStore.value;
+          const newState = updater(currentState);
+          this.stateStore.next(newState);
+          return [];
+        })
+      )
+      .subscribe();
+  }
 
   get currentState(): BattleState {
     return this.stateStore.value;
   }
 
-  updateState(updater: (state: BattleState) => BattleState) {
-    const newState = updater({
-      ...this.stateStore.value,
-      allies: [...this.stateStore.value.allies], // New array reference
-      enemies: [...this.stateStore.value.enemies] // New array reference
-    });
-    this.stateStore.next(newState);
+  private queueUpdate(updater: (state: BattleState) => BattleState): void {
+    this.updateQueue$.next(updater);
   }
 
-
-  resetState() {
-    this.stateStore.next(initialState);
-  }
-
-  updateCharacterEffectState(
-    characterId: number,
-    effect: keyof IActiveActionStatus,
-    value: boolean
-  ) {
-    this.updateState(state => ({
+  public updateStateByKey(updates: { key: keyof BattleState; value: any }[]) {
+    this.queueUpdate(state => ({
       ...state,
-      allies: this.updateCharacterInArray(state.allies, characterId, effect, value),
-      enemies: this.updateCharacterInArray(state.enemies, characterId, effect, value)
+      ...updates.reduce((acc, update) => ({
+        ...acc,
+        [update.key]: update.value
+      }), {})
     }));
   }
 
-  private updateCharacterInArray(array: IBattleCharacter[], characterId: number, effect: keyof IActiveActionStatus, value: boolean) {
-    return array.map(c => c.id === characterId ? {
-      ...c,
-      activeActionStatus: {
-        ...c.activeActionStatus,
-        [effect]: value
-      }
-    } : c);
+  public updateCharacterEffectState(
+    characterId: number,
+    effects: Partial<IActiveActionStatus>,
+    type: 'allies' | 'enemies'
+  ) {
+    this.queueUpdate(state => ({
+      ...state,
+      [type]: this.updateCharacterInArray(state[type], characterId, effects)
+    }));
+  }
+
+  private updateCharacterInArray(
+    array: IBattleCharacter[],
+    characterId: number,
+    effects: Partial<IActiveActionStatus>
+  ): IBattleCharacter[] {
+    return array.map(character =>
+      character.id === characterId
+        ? {
+          ...character,
+          activeActionStatus: {
+            ...character.activeActionStatus,
+            ...effects
+          }
+        }
+        : character
+    );
+  }
+
+
+  public resetState() {
+    this.queueUpdate(() => initialState);
+  }
+
+  public endBattle() {
+    this.queueUpdate(state => ({
+      ...state,
+      isBattleInProgress: false
+    }));
   }
 }

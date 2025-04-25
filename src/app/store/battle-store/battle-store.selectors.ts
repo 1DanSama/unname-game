@@ -9,14 +9,14 @@ export const selectBattleState = createSelector(
   (state: IBattleStoreState) => {
 
     return state.battleState ?? {
-      isBattleInProgress: false,
+      isBattleInProgress: true,
       allies: [],
       enemies: [],
       participants: [],
       battleRows: [],
       battleLog: [],
       currentRound: 0,
-      currentTurnIndex: -1,
+      currentTurnIndex: 0,
       damageNumbers: [],
       healNumbers: []
     }

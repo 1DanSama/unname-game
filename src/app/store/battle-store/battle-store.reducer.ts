@@ -1,7 +1,9 @@
 import { createReducer, on } from '@ngrx/store';
 import {BattleStoreActions} from './battle-store.actions';
-import {BattleState} from '../../shared/battle-services/battle-engine/battle-engine.service';
 import {EEnemyTypes, TEnemyPowerSettings} from '../../battle-field/dattle-field.model';
+import {
+  BattleState
+} from '../../shared/battle-services/battle-engine/battle-engine-support-services/battle-state.service';
 
 
 export const battleStoreFeatureKey = 'battleStore';

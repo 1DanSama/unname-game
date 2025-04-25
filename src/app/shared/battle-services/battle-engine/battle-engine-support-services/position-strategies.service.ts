@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { CharacterClass } from 'app/store/recruted-adventures/recruted-abventures.model';
-import {BattleState} from '../battle-engine.service';
 import {
   IBattleCharacter
 } from '../../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
+import {BattleState} from './battle-state.service';
 
 interface PositionStrategy {
   getStartPosition(isEnemy: boolean): number;
