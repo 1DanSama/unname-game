@@ -32,7 +32,6 @@ export class TargetSelectionService {
     attacker: IBattleCharacter,
     allies: IBattleCharacter[],
     enemies: IBattleCharacter[]): IBattleCharacter[] {
-    // todo fix droping
 
     let targets = this.getValidTargets2(
       attacker,

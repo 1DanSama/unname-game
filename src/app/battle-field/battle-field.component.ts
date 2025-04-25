@@ -57,9 +57,7 @@ export class BattleFieldComponent implements OnDestroy {
     this.store.select(selectBattleEnemyType).pipe(filter(type => !!type), first()).subscribe(type => enemyType = type);
 
     this.stateService.state$
-      .pipe(
-        takeUntil(this.destroy$),
-      )
+      .pipe(takeUntil(this.destroy$))
       .subscribe(state => {
         this.store.dispatch(BattleStoreActions.updateBattleState({state}));
       });

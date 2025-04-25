@@ -29,17 +29,17 @@ export const enemyPowerSettings: TEnemyPowerSettings = {
   },
   goblins: {
     enemyPowerMultiplier: 0.6,
-    enemyLevelMultiplier: 0,
-    averageLevel: 0,
+    enemyLevelMultiplier: 1,
+    averageLevel: 1,
     enemyPartySizeMultiplier: 3,
-    enemyPartySize: 0,
+    enemyPartySize: 1,
   },
   animals: {
     enemyPowerMultiplier: 2,
-    enemyLevelMultiplier: 0,
-    averageLevel: 0,
+    enemyLevelMultiplier: 1,
+    averageLevel: 1,
     enemyPartySizeMultiplier: 0.7,
-    enemyPartySize: 0,
+    enemyPartySize: 1,
   },
   cursedAnimals: {
     enemyPowerMultiplier: 4,

@@ -44,6 +44,11 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private handleRoundCompletion() {
+    if (!this.stateService.currentState.isBattleInProgress) {
+      this.checkBattleEnd();
+      return
+    }
+
     const currentRound = this.stateService.currentState.currentRound + 1
     this.stateService.updateStateByKey([{key:'currentRound', value: currentRound}])
 
@@ -57,7 +62,7 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private executeParticipantAction(participant: IBattleCharacter, currentState: BattleState) {
-    if (participant.currentHealth >= 1) {
+    if (participant && participant.currentHealth >= 1) {
       const {allies, enemies} = currentState;
 
       const validTargets = this.targetService.getValidTargets(participant, allies, enemies);

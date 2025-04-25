@@ -1,10 +1,12 @@
-import { Injectable } from '@angular/core';
+import {Injectable, OnDestroy} from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
+import {concatMap, takeUntil} from 'rxjs/operators';
 import {
   BattleRow, IActiveActionStatus,
   IBattleCharacter
 } from '../../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
+import {Store} from '@ngrx/store';
+import {BattleStoreActions} from '../../../../store/battle-store/battle-store.actions';
 
 export interface BattleState {
   allies: IBattleCharacter[];
@@ -34,16 +36,18 @@ const initialState: BattleState = {
 };
 
 @Injectable({ providedIn: 'root' })
-export class BattleStateService {
+export class BattleStateService implements OnDestroy {
   private stateStore = new BehaviorSubject<BattleState>(initialState);
+  private destroy$ = new Subject<void>();
 
   private updateQueue$ = new Subject<(state: BattleState) => BattleState>();
 
   public state$ = this.stateStore.asObservable();
 
-  constructor() {
+  constructor(readonly store$: Store) {
     this.updateQueue$
       .pipe(
+        takeUntil(this.destroy$),
         concatMap(updater => {
           const currentState = this.stateStore.value;
           const newState = updater(currentState);
@@ -111,5 +115,13 @@ export class BattleStateService {
       ...state,
       isBattleInProgress: false
     }));
+
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.store$.dispatch(BattleStoreActions.endBattle())
+  }
+
+  ngOnDestroy(): void {
+    this.endBattle()
   }
 }
