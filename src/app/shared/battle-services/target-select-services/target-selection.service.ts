@@ -45,6 +45,9 @@ export class TargetSelectionService {
 
       if (targets.length === 0 && validSelfTarget && needsSelfHeal) {
         targets = [attacker];
+      } else if (targets.length === 0 && !needsSelfHeal) {
+        console.warn("No valid targets for Healer!");
+        return [];
       }
     }
 

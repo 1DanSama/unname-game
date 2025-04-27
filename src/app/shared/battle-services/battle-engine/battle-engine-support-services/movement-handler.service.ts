@@ -24,7 +24,6 @@ export class MovementHandlerService {
       newRow = Math.max(1, attacker.currentRow - movement) as rowPosition;
     } else {
       newRow = Math.min(6, attacker.currentRow + movement) as rowPosition;
-
     }
 
     if (newRow !== attacker.currentRow) {
@@ -36,9 +35,10 @@ export class MovementHandlerService {
 
   private moveCharacter(char: IBattleCharacter, newRow: rowPosition) {
     const { allies, enemies } = this.stateService.currentState;
-    const otherAllies = allies.filter(a =>
-      a.id !== char.id &&
-      a.className !== CharacterClass.Healer
+    const team = char.isEnemy ? enemies : allies;
+    const otherAllies = team.filter(member =>
+      member.id !== char.id &&
+      member.className !== CharacterClass.Healer
     );
 
     const movementResult = this.battleMoving.calculateMovement(
@@ -59,7 +59,7 @@ export class MovementHandlerService {
       previousRow: char.currentRow,
       currentRow: newRow,
       currentAction: 'move',
-      activeActionStatus: { ...char.activeActionStatus } // Copy existing statuses
+      activeActionStatus: { ...char.activeActionStatus }
     };
 
     const updatedArray = char.isEnemy
@@ -81,6 +81,6 @@ export class MovementHandlerService {
       enemies: enemies.filter(e => e.currentRow === row)
     }));
 
-    this.stateService.updateStateByKey([{key:'battleRows', value:battleRows}])
+    this.stateService.updateStateByKey([{key:'battleRows', value: battleRows}])
   }
 }

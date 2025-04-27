@@ -1,5 +1,5 @@
 import {Injectable, OnDestroy} from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
+import {BehaviorSubject, Subject, switchMap} from 'rxjs';
 import {concatMap, takeUntil} from 'rxjs/operators';
 import {
   BattleRow, IActiveActionStatus,
@@ -48,15 +48,26 @@ export class BattleStateService implements OnDestroy {
     this.updateQueue$
       .pipe(
         takeUntil(this.destroy$),
-        concatMap(updater => {
+        switchMap(updater => {
           const currentState = this.stateStore.value;
           const newState = updater(currentState);
+          console.log('Current State:', currentState); // Журналування поточного стану
+          console.log('Updated State:', newState);     // Журналування оновленого стану
+
+          if (newState.currentTurnIndex !== currentState.currentTurnIndex) {
+            console.log('Turn Index Changed: ', newState.currentTurnIndex);
+          }
+          if (newState.participants !== currentState.participants) {
+            console.log('Participants Changed: ', newState.participants);
+          }
+
           this.stateStore.next(newState);
           return [];
         })
       )
       .subscribe();
   }
+
 
   get currentState(): BattleState {
     return this.stateStore.value;

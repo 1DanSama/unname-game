@@ -16,8 +16,12 @@ export class BattleCharacterMovingService {
     healerMaxRow: number,
     attackRange: number
   ): { canMove: boolean; updatedChar?: IBattleCharacter; log?: string } {
-    if (char.className === CharacterClass.Healer && newRow > healerMaxRow) {
-      return { canMove: false };
+    if (char.className === CharacterClass.Healer ) {
+      if(!char.isEnemy && newRow < healerMaxRow) {
+        return { canMove: false };
+      } else if (char.isEnemy && newRow > healerMaxRow) {
+        return { canMove: false };
+      }
     }
 
     if (char.className === CharacterClass.Healer && otherAllies.length > 0) {
