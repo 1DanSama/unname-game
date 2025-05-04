@@ -7,7 +7,6 @@ import {
   OnInit,
   HostBinding,
   ChangeDetectorRef,
-  AfterViewChecked, NgZone
 } from '@angular/core';
 import {BehaviorSubject, concat, of, timer, Subject, filter, pairwise, throttleTime} from 'rxjs';
 import {
@@ -17,14 +16,17 @@ import {
   distinctUntilChanged,
   takeUntil,
   map,
-  concatMap,
+  concatMap, tap,
 } from 'rxjs/operators';
 import {
   IActiveActionStatus,
   IBattleCharacter
 } from '../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {AsyncPipe, NgOptimizedImage} from '@angular/common';
-import {BattleStateService} from '../battle-services/battle-engine/battle-engine-support-services/battle-state.service';
+import {Store} from '@ngrx/store';
+import {defaulsBattleState} from '../../store/battle-store/battle-store.reducer';
+import {selectBattleState} from '../../store/battle-store/battle-store.selectors';
+import {BattleStoreActions} from '../../store/battle-store/battle-store.actions';
 
 @Component({
   selector: 'app-character-effects',
@@ -55,6 +57,7 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
   }
 
   @Output() effectCompleted = new EventEmitter<Partial<IActiveActionStatus>>();
+  private battleStateStoreSubject= new BehaviorSubject(defaulsBattleState);
 
   character$ = this.characterSubject.asObservable();
 
@@ -65,8 +68,12 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
   @HostBinding('style.--evasion-translate-end') translateEvasionEnd = '';
   @HostBinding('style.--hit-translate-end') translateHitEnd = '';
 
-  constructor(private cdr: ChangeDetectorRef, private ngZone: NgZone, private stateService: BattleStateService
-  ) {}
+  constructor(private cdr: ChangeDetectorRef, private battleStateStore: Store) {
+    this.battleStateStore.select(selectBattleState).pipe(
+      tap(state => this.battleStateStoreSubject.next(state)),
+      takeUntil(this.destroy$)
+    ).subscribe()
+  }
 
   ngOnInit() {
     this.character$
@@ -90,13 +97,14 @@ export class CharacterEffectsComponent implements OnInit, OnDestroy {
           };
 
           const key = curr.isEnemy ? 'enemies' : 'allies';
-          const updatedValue = this.stateService.currentState[key].map(character =>
+          const updatedValue = this.battleStateStoreSubject.value[key].map(character =>
             character.id === curr.id
               ? { ...character, activeActionStatus: updatedActionStatus, hasUpdatedActionStatus: false }
               : character
           );
+          // this.stateService.updateStateByKey([{key, value: updatedValue}]);
+          this.battleStateStore.dispatch(BattleStoreActions.updateBattleStateData({updates: {[key]: updatedValue}}))
 
-          this.stateService.updateStateByKey([{key, value: updatedValue}]);
 
           this.cdr.detectChanges();
         }

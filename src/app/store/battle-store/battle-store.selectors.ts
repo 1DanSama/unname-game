@@ -3,23 +3,10 @@ import {battleStoreFeatureKey, IBattleStoreState} from './battle-store.reducer';
 
 export const selectBattleStoreState = createFeatureSelector<IBattleStoreState>(battleStoreFeatureKey);
 
-
 export const selectBattleState = createSelector(
   selectBattleStoreState,
   (state: IBattleStoreState) => {
-
-    return state.battleState ?? {
-      isBattleInProgress: true,
-      allies: [],
-      enemies: [],
-      participants: [],
-      battleRows: [],
-      battleLog: [],
-      currentRound: 0,
-      currentTurnIndex: 0,
-      damageNumbers: [],
-      healNumbers: []
-    }
+    return state.battleState
   }
 );
 

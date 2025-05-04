@@ -1,39 +1,59 @@
-import { Injectable } from '@angular/core';
+import {Injectable, OnDestroy} from '@angular/core';
 import {
   BattleRow,
   IBattleCharacter,
   RecruitedAdventures, rowPosition
 } from '../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
-import {IEnemyPowerSettings} from '../../../battle-field/dattle-field.model';
-import {BattleStateService} from './battle-engine-support-services/battle-state.service';
+import {EEnemyTypes, IEnemyPowerSettings} from '../../../battle-field/dattle-field.model';
 import {BattleInitializationService} from './battle-engine-support-services/battle-initialization.service';
 import {BattleEngineService} from './battle-engine.service';
+import {BehaviorSubject, Subject} from 'rxjs';
+import {defaulsBattleState} from '../../../store/battle-store/battle-store.reducer';
+import {Store} from '@ngrx/store';
+import {selectBattleState} from '../../../store/battle-store/battle-store.selectors';
+import {takeUntil, tap} from 'rxjs/operators';
+import {BattleStoreActions} from '../../../store/battle-store/battle-store.actions';
 
 @Injectable({
   providedIn: 'root'
 })
-export class FasadEngineService {
+export class FasadEngineService implements OnDestroy{
+  private battleStateStoreSubject= new BehaviorSubject(defaulsBattleState);
+
+  private destroy$ = new Subject<void>();
+
   constructor(
-    private stateService: BattleStateService,
+    private battleStateStore: Store,
     private initService: BattleInitializationService,
     private battleEngine: BattleEngineService,
-  ) { }
-
-  initializeBattle(recruited: RecruitedAdventures[], enemyPower: IEnemyPowerSettings) {
-    this.stateService.resetState();
-    const initialState = this.initService.createInitialState(recruited, enemyPower);
-    this.stateService.updateStateByKey([
-      {key: 'allies', value: initialState.allies},
-      {key: 'enemies', value: initialState.enemies},
-      {key: 'battleRows', value: this.createBattleRows(initialState.allies, initialState.enemies)},
-      {key: 'participants', value: this.battleEngine.getSortedParticipants(initialState.allies, initialState.enemies)}
-    ])
-
-    this.startBattle();
+  ) {
+    this.battleStateStore.select(selectBattleState).pipe(
+    tap(state => this.battleStateStoreSubject.next(state)),
+    takeUntil(this.destroy$)
+  ).subscribe()
   }
 
-  startBattle() {
-    this.stateService.updateStateByKey([{key:'isBattleInProgress', value: true}])
+  initializeBattle(recruited: RecruitedAdventures[], enemyPower: IEnemyPowerSettings, backgroundImg: string, enemyType: EEnemyTypes) {
+    this.battleStateStore.dispatch(BattleStoreActions.endBattle())
+    const initialState = this.initService.createInitialState(recruited, enemyPower);
+    this.battleStateStore.dispatch(BattleStoreActions.updateBattleStateData(
+      { updates:
+          {
+            enemies: initialState.enemies,
+            allies: initialState.allies,
+            battleRows: this.createBattleRows(initialState.allies, initialState.enemies),
+            participants: this.battleEngine.getSortedParticipants(initialState.allies, initialState.enemies)
+          }
+      })
+    )
+
+    this.startBattle(backgroundImg, enemyType);
+  }
+
+  startBattle(backgroundImg: string, enemyType: EEnemyTypes) {
+    this.battleStateStore.dispatch(BattleStoreActions.startBattle({backgroundImg, enemyType}))
+    //
+    // this.stateService.updateStateByKey([{key:'isBattleInProgress', value: true}])
     this.battleEngine.processBattleTurns(0)
   }
 
@@ -47,6 +67,11 @@ export class FasadEngineService {
 
   stopBattle() {
     // todo realize pause
-    this.stateService.resetState()
+    this.battleStateStore.dispatch(BattleStoreActions.endBattle())
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

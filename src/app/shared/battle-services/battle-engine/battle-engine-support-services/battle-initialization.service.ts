@@ -6,13 +6,12 @@ import {PositionStrategyFactory} from './position-strategies.service';
 import {EnemyInitService} from '../../enemy-init.service';
 import {IEnemyPowerSettings} from '../../../../battle-field/dattle-field.model';
 import {PartyPowerCalculatorService} from '../../../party-power-calculator.service';
-import {BattleState} from './battle-state.service';
+import {BattleState} from '../../../../store/battle-store/battle-store.reducer';
 
 @Injectable({ providedIn: 'root' })
 export class BattleInitializationService {
   private baseState: Omit<BattleState, 'allies' | 'enemies' | 'participants' | 'battleRows'> = {
     battleLog: [],
-    isBattleInProgress: true,
     currentRound: 1,
     currentTurnIndex: 0,
     damageNumbers: [],

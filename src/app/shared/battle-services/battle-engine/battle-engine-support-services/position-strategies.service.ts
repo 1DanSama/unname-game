@@ -3,7 +3,7 @@ import { CharacterClass } from 'app/store/recruted-adventures/recruted-abventure
 import {
   IBattleCharacter
 } from '../../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
-import {BattleState} from './battle-state.service';
+import {BattleState} from '../../../../store/battle-store/battle-store.reducer';
 
 interface PositionStrategy {
   getStartPosition(isEnemy: boolean): number;

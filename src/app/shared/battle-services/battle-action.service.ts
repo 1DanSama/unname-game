@@ -7,7 +7,7 @@ import {
 } from '../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {CharacterClass} from '../../store/recruted-adventures/recruted-abventures.model';
 import {TargetSelectionService} from './target-select-services/target-selection.service';
-import {BattleStateService} from './battle-engine/battle-engine-support-services/battle-state.service';
+import {Store} from '@ngrx/store';
 
 export interface IPerformAutoActionResult {
   updatedAttacker: IBattleCharacter;
@@ -24,7 +24,7 @@ export class BattleActionService {
   constructor(
     private damageCalculator: DamageCalculationService,
     private targetSelector: TargetSelectionService,
-    private stateService: BattleStateService
+    private battleStore: Store
   ) {
   }
 
@@ -212,6 +212,6 @@ export class BattleActionService {
 
   private addToLog(messages: string | string[]) {
     const newMessages = Array.isArray(messages) ? messages : [messages];
-    this.stateService.updateStateByKey([{key:'battleLog', value:[...newMessages, ...this.stateService.currentState.battleLog]}])
+    // this.stateService.updateStateByKey([{key:'battleLog', value:[...newMessages, ...this.stateService.currentState.battleLog]}])
   }
 }

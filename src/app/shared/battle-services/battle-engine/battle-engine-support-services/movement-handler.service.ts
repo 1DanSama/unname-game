@@ -1,22 +1,36 @@
 import { Injectable } from '@angular/core';
-import { BattleStateService } from './battle-state.service';
 import {
   IBattleCharacter, rowPosition
 } from '../../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
 import {CharacterClass} from '../../../../store/recruted-adventures/recruted-abventures.model';
 import {BattleCharacterMovingService} from '../../battle-character-moving.service';
 import {LogService} from './log.service';
+import {Store} from '@ngrx/store';
+import {BehaviorSubject, Subject} from 'rxjs';
+import {defaulsBattleState} from '../../../../store/battle-store/battle-store.reducer';
+import {selectBattleState} from '../../../../store/battle-store/battle-store.selectors';
+import {takeUntil, tap} from 'rxjs/operators';
+import {BattleStoreActions} from '../../../../store/battle-store/battle-store.actions';
 
 @Injectable({ providedIn: 'root' })
 export class MovementHandlerService {
+  private battleStateStoreSubject= new BehaviorSubject(defaulsBattleState);
+  private destroy$ = new Subject<void>();
+
   constructor(
     private logService: LogService,
-    private stateService: BattleStateService,
-    private battleMoving: BattleCharacterMovingService
-  ) {}
+    private battleMoving: BattleCharacterMovingService,
+    private battleStateStore: Store,
+  ) {
+    this.battleStateStore.select(selectBattleState).pipe(
+      tap(state => this.battleStateStoreSubject.next(state)),
+      takeUntil(this.destroy$)
+    ).subscribe()
+  }
 
 
   public handleNoTargets(attacker: IBattleCharacter) {
+    console.log('handleNoTargets')
     const movement = attacker.movementSpeed;
     let newRow: rowPosition;
 
@@ -34,7 +48,7 @@ export class MovementHandlerService {
   }
 
   private moveCharacter(char: IBattleCharacter, newRow: rowPosition) {
-    const { allies, enemies } = this.stateService.currentState;
+    const { allies, enemies } = this.battleStateStoreSubject.value;
     const team = char.isEnemy ? enemies : allies;
     const otherAllies = team.filter(member =>
       member.id !== char.id &&
@@ -66,14 +80,17 @@ export class MovementHandlerService {
       ? enemies.map(c => c.id === char.id ? updatedChar : {...c})
       : allies.map(c => c.id === char.id ? updatedChar : {...c});
 
-    this.stateService.updateStateByKey([{key: char.isEnemy ? 'enemies' : 'allies', value: updatedArray}])
+    const key = char.isEnemy ? 'enemies' : 'allies'
+    this.battleStateStore.dispatch(BattleStoreActions.updateBattleStateData({updates: {[key]: updatedArray}}))
+
+    // this.stateService.updateStateByKey([{key: char.isEnemy ? 'enemies' : 'allies', value: updatedArray}])
 
     this.logService.addToLog(movementResult.log!);
     this.updateBattleRows();
   }
 
   public updateBattleRows() {
-    const { allies, enemies } = this.stateService.currentState;
+    const { allies, enemies } = this.battleStateStoreSubject.value;
 
     const battleRows = [1, 2, 3, 4, 5, 6].map(row => ({
       row: row as rowPosition,
@@ -81,6 +98,7 @@ export class MovementHandlerService {
       enemies: enemies.filter(e => e.currentRow === row)
     }));
 
-    this.stateService.updateStateByKey([{key:'battleRows', value: battleRows}])
+    // this.stateService.updateStateByKey([{key:'battleRows', value: battleRows}])
+    this.battleStateStore.dispatch(BattleStoreActions.updateBattleStateData({updates: {battleRows}}))
   }
 }

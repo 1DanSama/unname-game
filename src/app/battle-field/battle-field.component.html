@@ -1,10 +1,11 @@
 <div class="arena-container">
   @if (battleState$ | async; as battleState) {
     <div class="battle-field__wrapper">
-      @if (battleState?.isBattleInProgress) {
+      <div>{{ battleState?.isBattleActive }}</div>
+      @if (battleState?.isBattleActive) {
         <div class="battle-field"
              [ngStyle]="{ 'background': 'url(' + (backgroundImg$ | async) + ') no-repeat center/cover' }">
-          @if ((battleState$ | async)?.battleRows; as rows) {
+          @if ((battleState$ | async)?.battleState?.battleRows; as rows) {
             @for (battleRow of rows; track battleRow.row) {
               <div class="battle-row" [attr.data-row]="battleRow.row">
                 <!-- Allies Section -->
@@ -12,16 +13,19 @@
 
                   <div class="combatants-list allies">
                     <div class="combatants-grid">
-                      @for (ally of battleRow.allies; track ally.id) {
-                        <app-character-effects
-                          [style.--animation-delay]="animationDelay + 'ms'"
-                          [class]="'ally'"
-                          [character]="ally"
-                          [isActiveTurn]="battleState.currentTurnIndex < (battleState.participants.length || 0)
-                            && battleState.participants && battleState.participants[battleState.currentTurnIndex]
-                            && battleState.participants[battleState.currentTurnIndex].id === ally.id"
-                          (effectCompleted)="handleEffectComplete($event, ally)">
-                        </app-character-effects>
+                      @if(battleState.battleState) {
+                        @for (ally of battleRow.allies; track ally.id) {
+                          <app-character-effects
+                            [style.--animation-delay]="animationDelay + 'ms'"
+                            [class]="'ally'"
+                            [character]="ally"
+                            [isActiveTurn]="(battleState.battleState.currentTurnIndex !== undefined
+                              && battleState.battleState.participants
+                              && battleState.battleState.currentTurnIndex < battleState.battleState.participants.length
+                              && battleState.battleState.participants[battleState.battleState.currentTurnIndex].id === ally.id)"
+                            (effectCompleted)="handleEffectComplete($event, ally)">
+                          </app-character-effects>
+                        }
                       }
                     </div>
                   </div>
@@ -31,16 +35,19 @@
                 @if (battleRow.enemies && battleRow.enemies.length > 0) {
                   <div class="combatants-list enemies">
                     <div class="combatants-grid">
-                      @for (enemy of battleRow.enemies; track enemy.id) {
-                        <app-character-effects
-                          [style.--animation-delay]="animationDelay + 'ms'"
-                          [class]="'enemy'"
-                          [character]="enemy"
-                          [isActiveTurn]="battleState.currentTurnIndex < (battleState.participants.length || 0)
-                            && battleState.participants && battleState.participants[battleState.currentTurnIndex]
-                            && battleState.participants[battleState.currentTurnIndex].id === enemy.id"
-                          (effectCompleted)="handleEffectComplete($event, enemy)">
-                        </app-character-effects>
+                      @if(battleState.battleState) {
+                        @for (enemy of battleRow.enemies; track enemy.id) {
+                          <app-character-effects
+                            [style.--animation-delay]="animationDelay + 'ms'"
+                            [class]="'enemy'"
+                            [character]="enemy"
+                            [isActiveTurn]="(battleState.battleState.currentTurnIndex !== undefined
+                              && battleState.battleState.participants
+                              && battleState.battleState.currentTurnIndex < battleState.battleState.participants.length
+                              && battleState.battleState.participants[battleState.battleState.currentTurnIndex].id === enemy.id)"
+                            (effectCompleted)="handleEffectComplete($event, enemy)">
+                          </app-character-effects>
+                        }
                       }
                     </div>
                   </div>
@@ -54,7 +61,7 @@
 
         <!-- Damage Numbers -->
         <div class="damage-numbers">
-          @for (dmg of battleState.damageNumbers || []; track dmg.id) {
+          @for (dmg of battleState.battleState.damageNumbers || []; track dmg.id) {
             <div class="damage-number"
                  [style.left.px]="dmg.x"
                  [style.top.px]="dmg.y">
@@ -65,7 +72,7 @@
 
         <!-- Heal Numbers -->
         <div class="heal-numbers">
-          @for (heal of battleState.healNumbers || []; track heal.id) {
+          @for (heal of battleState.battleState.healNumbers || []; track heal.id) {
             <div class="heal-number"
                  [style.left.px]="heal.x"
                  [style.top.px]="heal.y">
@@ -76,7 +83,7 @@
       } @else {
         <div class="battle-paused">
           <h3>⚔️ Battle Paused ⚔️</h3>
-          <p>Current Round: {{ battleState?.currentRound || 0 }}</p>
+          <p>Current Round: {{ battleState.battleState.currentRound || 0 }}</p>
         </div>
       }
 
@@ -84,8 +91,8 @@
       <div class="battle-log">
         <h3>📜 Журнал битви</h3>
         <div class="log-entries">
-          @if (battleState?.battleLog?.length) {
-            @for (entry of battleState.battleLog.slice().reverse(); track $index) {
+          @if (battleState.battleState.battleLog.length) {
+            @for (entry of battleState.battleState.battleLog.slice().reverse(); track $index) {
               <div class="log-entry">{{ entry }}</div>
             }
           } @else {

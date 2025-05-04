@@ -1,28 +1,39 @@
 import {Injectable, OnDestroy} from '@angular/core';
-import {Subject} from 'rxjs';
+import {BehaviorSubject, Subject} from 'rxjs';
 import {BattleActionService, IPerformAutoActionResult} from '../battle-action.service';
 import {QuestManagerService} from '../../quest-manager.service';
 import { IBattleCharacter } from '../../../locations/city/city-locations/guild/guild-locations/recruiting-room/recrutes-sandbox/character-creator.interface';
-import {BattleState, BattleStateService} from './battle-engine-support-services/battle-state.service';
 import {TargetSelectionService} from '../target-select-services/target-selection.service';
 import {MovementHandlerService} from './battle-engine-support-services/movement-handler.service';
 import {LogService} from './battle-engine-support-services/log.service';
+import {Store} from '@ngrx/store';
+import {selectBattleState} from '../../../store/battle-store/battle-store.selectors';
+import {BattleState, defaulsBattleState} from '../../../store/battle-store/battle-store.reducer';
+import {takeUntil, tap} from 'rxjs/operators';
+import {BattleStoreActions} from '../../../store/battle-store/battle-store.actions';
 
 @Injectable({providedIn: 'root'})
 export class BattleEngineService implements OnDestroy {
   private turnDelay = 2000;
   private roundDelay = 4000;
+  private battleStateStoreSubject= new BehaviorSubject(defaulsBattleState);
 
   private destroy$ = new Subject<void>();
 
   constructor(
-    private stateService: BattleStateService,
+    private battleStateStore: Store,
     private targetService: TargetSelectionService,
     private questManager: QuestManagerService,
     private actionService: BattleActionService,
     private movementHandler: MovementHandlerService,
     private logService: LogService,
-  ) {}
+  ) {
+    this.battleStateStore.select(selectBattleState).pipe(
+      tap(state => this.battleStateStoreSubject.next(state)),
+      takeUntil(this.destroy$)
+    ).subscribe()
+  }
+
 
   public getSortedParticipants(allies: IBattleCharacter[], enemies: IBattleCharacter[]): IBattleCharacter[] {
     return [...allies, ...enemies]
@@ -31,26 +42,26 @@ export class BattleEngineService implements OnDestroy {
   }
 
   public processBattleTurns(index = 0) {
-    if (index >= this.stateService.currentState.participants.length) {
+    if (index >= this.battleStateStoreSubject.value.participants.length) {
       this.handleRoundCompletion();
       return;
     }
 
     setTimeout(() => {
-      const curentState = this.stateService.currentState
+      const curentState = this.battleStateStoreSubject.value
       this.executeParticipantAction(curentState.participants[index], curentState);
       this.processBattleTurns(index + 1);
     }, this.turnDelay);
   }
 
   private handleRoundCompletion() {
-    if (!this.stateService.currentState.isBattleInProgress) {
-      this.checkBattleEnd();
-      return
-    }
+     if(this.checkBattleEnd()) {
+       return
+     }
 
-    const currentRound = this.stateService.currentState.currentRound + 1
-    this.stateService.updateStateByKey([{key:'currentRound', value: currentRound}])
+    const currentRound = this.battleStateStoreSubject.value.currentRound + 1
+    this.battleStateStore.dispatch(BattleStoreActions.updateBattleStateData({updates: {currentRound}}))
+    // this.stateService.updateStateByKey([{key:'currentRound', value: currentRound}])
 
     this.logService.addToLog(`--- Round ${currentRound} Starts ---`);
 
@@ -58,7 +69,9 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private updateParticipants(updatedAllies: IBattleCharacter[], updatedEnemies: IBattleCharacter[]) {
-    this.stateService.updateStateByKey([{key:'participants', value: this.getSortedParticipants(updatedAllies, updatedEnemies)}])
+    this.battleStateStore.dispatch(BattleStoreActions.updateBattleStateData({updates: {participants: this.getSortedParticipants(updatedAllies, updatedEnemies)}}))
+
+    // this.stateService.updateStateByKey([{key:'participants', value: this.getSortedParticipants(updatedAllies, updatedEnemies)}])
   }
 
   private executeParticipantAction(participant: IBattleCharacter, currentState: BattleState) {
@@ -78,7 +91,7 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private updateParticipantStates(result: IPerformAutoActionResult) {
-    const updatedAllies = this.stateService.currentState.allies.map(a => {
+    const updatedAllies = this.battleStateStoreSubject.value.allies.map(a => {
       const updated = result.updatedTargets.find(t => t.id === a.id);
       return updated ? {
         ...a,
@@ -88,7 +101,7 @@ export class BattleEngineService implements OnDestroy {
       } : a;
     });
 
-    const updatedEnemies = this.stateService.currentState.enemies.map(e => {
+    const updatedEnemies = this.battleStateStoreSubject.value.enemies.map(e => {
       const updated = result.updatedTargets.find(t => t.id === e.id);
       return updated ? {
         ...e,
@@ -98,8 +111,7 @@ export class BattleEngineService implements OnDestroy {
       } : e;
     });
 
-
-    this.stateService.updateStateByKey([{key:'enemies', value: updatedEnemies}, {key:'allies', value: updatedAllies}])
+    this.battleStateStore.dispatch(BattleStoreActions.updateBattleStateData({updates: {enemies: updatedEnemies, allies: updatedAllies}}))
 
     this.updateParticipants(updatedAllies, updatedEnemies)
 
@@ -108,7 +120,7 @@ export class BattleEngineService implements OnDestroy {
   }
 
   private checkBattleEnd(): boolean {
-    const {allies, enemies} = this.stateService.currentState;
+    const {allies, enemies} = this.battleStateStoreSubject.value;
     const alliesAlive = allies.some(a => a.currentHealth > 0);
     const enemiesAlive = enemies.some(e => e.currentHealth > 0);
 
@@ -122,12 +134,13 @@ export class BattleEngineService implements OnDestroy {
         this.logService.addToLog('You lost the battle');
       }
 
-      this.stateService.endBattle();
+      this.battleStateStore.dispatch(BattleStoreActions.endBattle())
       this.destroy$.next();
       this.destroy$.complete();
 
       return true;
     }
+
     return false;
   }
 
